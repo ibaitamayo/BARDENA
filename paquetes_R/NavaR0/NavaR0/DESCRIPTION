@@ -1,0 +1,12 @@
+Package: NavaR0
+Type: Package
+Title: Tableau R interface for R0 calculation 
+Version: 0.3.0
+Author: Methodology Unit of Navarrabiomed
+Maintainer: The package maintainer <ibai.tamayo.rodriguez@navarra.es>
+Description: Tethering R and Tableau to calculate Covid R0
+    Changed default mean_si value to current estimations(29/10/21).
+License: NA
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
