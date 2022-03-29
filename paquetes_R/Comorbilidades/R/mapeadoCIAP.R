@@ -1,4 +1,5 @@
-Codigos_ciap_Charlton <- read_excel("F:/BARDENA/paquetes_R/Codigos_ciap_Charlton.xlsx", sheet = "Hoja2", col_types = c("text","skip", "text"))Codigos_ciap_Charlton$Dtcos_CIAP[is.na(Codigos_ciap_Charlton$Dtcos_CIAP)==FALSE]->somecod
+Codigos_ciap_Charlton <- read_excel("F:/BARDENA/paquetes_R/Codigos_ciap_Charlton.xlsx", sheet = "Hoja2", col_types = c("text","skip", "text"))
+Codigos_ciap_Charlton$Dtcos_CIAP[is.na(Codigos_ciap_Charlton$Dtcos_CIAP)==FALSE]->somecod
 colnames(Codigos_ciap_Charlton)<-c("grupo_","CIAP2")
 
 
@@ -40,7 +41,7 @@ library(data.table)
 mapeado %>%
   mutate(CIAP2 = strsplit(as.character(CIAP2), "/")) %>%
   unnest(CIAP2)%>%
-  mutate(CIAP2=ifelse(nchar(CIAP2)==2,paste0(strtrim(lag(x = CIAP2,default = ""),1),CIAP2),CIAP2))->mapeado
+  mutate(CIAP2=ifelse(nchar(CIAP2)==2&nchar(lag(x = CIAP2))==3,paste0(strtrim(lag(x = CIAP2,default = ""),1),CIAP2),ifelse(nchar(CIAP2)==2&nchar(lag(x = CIAP2))==2,paste0(strtrim(lag(x = CIAP2,n=2,default = ""),1),CIAP2),CIAP2)))->mapeado
 
 mapeado%>%mutate(new=paste0("^",CIAP2))%>%group_by(grupo)%>%mutate(n=1:n())%>%ungroup()%>%mutate(new=ifelse(n>1,paste0("|",new),new))%>%select(grupo,new)->ppp
 

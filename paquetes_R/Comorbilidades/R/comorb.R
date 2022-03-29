@@ -47,6 +47,8 @@ require(tools)
     tabla <- tabla %>%mutate(ResDiag_Inicio_Fecha=dmy(str_trunc(ResDiag_Inicio_Fecha,width = 10,ellipsis = "")))
   }
 
+  tabla<-table%>%mutate(Diag_Cod=ifelse(str_starts(string=tolower(type),pattern = "(ciap)"),paste0("_",Diag_Cod),Diag_Cod))#esto es lo que he añadido para que lea los ciap2
+
   tabla <- tabla %>% dplyr::select(id,code,fecha)
 
   colnames(tabla) <- c("id","code","fecha")
