@@ -1,6 +1,8 @@
-Este paquete por ahora hace dos cosas:
-1.Utiliza los códigos CIE9 y CIE10 de los ingresos del conjunto básicomínimo de datos y computa el índice Charlson y Elixhauser permitiendo extraer la primera fecha en la que se introdujo un código relacionado con cada grupo de patologías.
-Para este punto 1 utiliza los siguientes códigos, extraidos del paquete comorbidity:
+Este paquete por ahora hace varias cosas:
+1.Utiliza los códigos CIE9, CIE10 de los ingresos del conjunto básico mínimo de datos y los códigos CIAP2 de los diagnósticos de primaria y computa el índice Charlson y Elixhauser devolviendo además la primera fecha en la que se introdujo un código relacionado con cada grupo de patologías.
+
+
+Para este punto utiliza los siguientes códigos, extraidos del paquete comorbidity:
 Pretendemos realizar y actualizar los datos del  primer punto mediante los históricos de pacientes codificados en CIAP2.
 
 
@@ -44,8 +46,145 @@ o	Any malignancy, including lymphoma and leukaemia, except malignant neoplasm of
 o	Moderate or severe liver disease: I85.0, I85.9, I86.4, I98.2, K70.4, K71.1, K72.1, K72.9, K76.5, K76.6, K76.7
 o	Metastatic solid tumour: C77.x - C80.x
 o	AIDS/HIV: B20.x - B22.x, B24.x
+
 Weights
 Each condition from the Charlson score is assigned a score when computing the weighted Charlson index, irrespectively of the coding system utilised. In particular, diabetes with complications, hemiplegia/paraplegia, renal disease, and malignancies are assigned a score of 2; moderate/severe liver disease is assigned a score of 3; metastatic solid tumour and AIDS/HIV are assigned a score of 6; the remaining comorbidities are assigned a score of 1. comorbidityallows the option of applying a hierarchy of comorbidities should a more severe version be present: by choosing to do so (and that is the default behaviour of comorbidity) a type of comorbidity is never computed more than once for a given patient.
+
+Los códigos CIAP2 son los siguientes:
+grupo CIAP2
+ami K75
+ami K76
+chf K76
+chf K77
+pvd K92
+pvd K99
+cevd K89
+cevd K90
+cevd K91
+dementia P70
+copd R95
+rheumd_ch L88
+pud_ch D86
+pud_ch D85
+mld D72
+mld D97
+diabwoc T89
+diabwoc T90
+diabwic 
+hp N18
+rend K87
+rend U88
+rend U99.01
+rend U99
+canc D77
+canc R85
+canc A79
+canc D74
+canc D75
+canc D76
+canc R84
+canc B74
+canc L71
+canc S77
+canc N74
+canc X76
+canc X77
+canc X75
+canc W72
+canc Y78
+canc Y77
+canc U75
+canc U77
+canc U76
+canc F74
+canc T71
+canc T73
+canc B72
+canc B73
+msld 
+metacanc 
+aids B90
+carit K80
+carit K79
+carit K78
+carit K04
+carit K05
+valv K83
+valv K73
+pcd K93
+pcd K82
+hypunc K86
+hypc K87
+para N18
+ond N99
+ond N87
+ond N08
+ond N86
+ond N88
+ond N19
+ond N07
+diabunc T89
+diabunc T90
+diabc 
+hypothy T80
+hypothy T86
+rf U99.01
+rf U99
+ld D72
+ld D97
+pud_hx D86
+pud_hx D85
+lymph B72
+lymph B74
+solidtum D77
+solidtum R85
+solidtum A79
+solidtum D74
+solidtum D75
+solidtum D76
+solidtum R84
+solidtum B74
+solidtum L71
+solidtum N74
+solidtum X76
+solidtum X77
+solidtum X75
+solidtum W72
+solidtum Y78
+solidtum Y77
+solidtum U75
+solidtum U77
+solidtum U76
+solidtum F74
+solidtum T71
+solidtum T73
+solidtum S77
+rheumd_hx L88
+rheumd_hx K99
+rheumd_hx B72
+rheumd_hx L88.01
+rheumd_hx L84
+coag B83
+obes T83
+obes T82
+wloss T91
+wloss T08
+fed T99
+blane B80
+dane B80
+dane B81
+alcohol P15
+alcohol D87
+alcohol D97
+alcohol A86
+drug P19
+drug P18
+psycho P72
+psycho P98
+psycho P73
+depre P76
+depre P82
+depre P02
 
 
 
