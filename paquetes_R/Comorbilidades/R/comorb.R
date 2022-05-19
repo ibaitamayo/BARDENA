@@ -13,7 +13,6 @@
 #'
 #' @export
 #'
-
 comorb<-function(archivo="//Centcs01srv03/TABLEAU/Coronavirus/R/PacDiag2021.csv",id="Pac_Unif_Cod",code="Diag_Cod", fecha="ResDiag_Inicio_Fecha",assign0 = TRUE,mini=NULL) {
 
   require(dplyr)
