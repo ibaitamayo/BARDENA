@@ -1,0 +1,775 @@
+---
+title: "Introducción Process Mining"
+output:
+  html_document:
+    toc: true # table of content true
+    toc_depth: 3
+  pdf_document:
+    toc: true # table of content true
+    toc_depth: 3
+date: '2022-05-17'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, results = FALSE, comment=FALSE, echo=FALSE, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(mongolite)
+library(jsonlite)
+library(ggplot2)
+
+library(bupaR)
+library(processmapR)
+library(edeaR)
+library(pals)
+
+library(openxlsx)
+library(dplyr)
+library(processanimateR)
+library(heuristicsmineR)
+library(petrinetR)
+# library(fuzzymineR)
+library(devtools)
+library(tidyr)
+library(forcats)
+```
+
+# Ejemplo de process mining y explicaciones
+
+## Uso especializaciones
+
+Esta parte fue un primer acercamiento al process mining. Se trabajó con la base de datos anonimizada de visitas a especialistas de pacientes prevalentes a fecha 01/01/2012 de Diabetes Mellitus de Navarra. Nos quedamos con las visitas a especialistas más relacionados con la diabetes. No se separaron pacientes de DB1 y DB2. Lo primero que se hizo fue cargar los datos, ponerlos con estructura de *eventlog* (representación de todas las actividades y los eventos que componen cada una de estas (por ejemplo, la actividad "operación" está formada por un subproceso, que está compuesto, también por ejemplo, por los eventos "inicio" y "fin") que llevaron a cabo los pacientes. Cada registro (evento) describe el ID del caso/paciente, la actividad que realiza, la fecha del evento en cuestión, el estado e instancia de la actividad en el evento que estamos contemplando (el estado determina el nombre del evento, es decir, en qué fase se encuentra la actividad, mientras que la instancia es el ID que referencia a la actividad) y el *resource*, es decir, la entidad que realiza la actividad, un hospital donde se realiza la actividad o el médico que la realiza, por ejemplo). En nuestro caso, al ser visitas puntuales, las actividades están formadas por un solo evento. Así pues, las instancias son diferentes para cada evento y la designación del estado (el ciclo en nuestro caso) es *complete* para todos los casos. Tampoco hemos contemplado la presencia de *resources*. Las fechas son las de la visita. Solo nos quedamos con los primeros 50000 registros del *eventlog* ordenado por paciente por limitaciones computacionales. Además, filtramos las especialidades más relacionadas con la DM2.
+
+Sacamos por pantalla un resumen de nuestro *eventlog*.
+
+```{r}
+
+
+load("F:/Navarrabiomed/Methodology/Github/CODE/BARDENA/Process_mining/Aprendiendo/Charla28N/Prueba datos random/Prevalentes_DM1.Rdata")
+load("F:/Navarrabiomed/Methodology/Github/CODE/BARDENA/Process_mining/Aprendiendo/Charla28N/Prueba datos random/Prevalentes_DM2.Rdata")
+##############
+eventlog = read.csv("Prueba datos random/tabla_AE_a.csv", header=TRUE, sep = ",")
+
+# length (summary(as.factor(eventlog$especialidadAE)))
+eventlog %>%group_by(especialidadAE) %>% summarize(porc=n()/nrow(.)) %>% arrange(porc)
+
+
+# selecciono los 10 más frecuentes
+
+
+
+
+eventlog = eventlog[which(eventlog$especialidadAE %in% c("OFTALMOLOGIA","RADIODIAGNOSTICO","ENDOCRINOLOGIA Y NUTRICION","TRAUMATOLOGIA Y ORTOPEDIA","CARDIOLOGIA","DIGESTIVO","SALUD MENTAL","UROLOGIA","HEMATOLOGIA","NEUROLOGIA") & eventlog$fecha_citaAE_start != "NA"),] # originalmente se seldeccionan estas 3especialidades_c("NEFROLOGIA", "OFTALMOLOGIA", "CARDIOLOGIA","DERMATOLOGIA","NEUROLOGIA","NUTRICION Y DIETETICA","SALUD MENTAL", "ENDOCRINOLOGIA Y NUTRICION")
+
+eventlog = eventlog[order(eventlog$ID),]
+eventlog$fecha_citaAE_start = as.POSIXct(eventlog$fecha_citaAE_start, tz = "", format="%Y-%m-%d" ,
+                                 tryFormats = c("%Y/%m/%d",
+                                                "%Y/%m/%d"),
+                                 optional = FALSE) #Sirve para transformar fecha a un formato con el que podemos trabajar
+eventlog %>% arrange(ID,fecha_citaAE_start)->eventlog
+
+
+
+
+
+
+
+eventlog %>% mutate(DM_type=factor(ifelse(ID %in% PrevalentesDM1_OUTCOMES$ID,1,0),levels=c(0,1),labels=c("DM2","DM1")))->eventlog3
+
+# eventlog3 %>% group_by(ID) %>% arrange(fecha_citaAE_start)%>% mutate(cambio=especialidadAE==data.table::shift(especialidadAE,n=1L,fill = FALSE)) %>% mutate(status=ifelse(cambio==FALSE,"start",ifelse(cambio==TRUE & fecha_citaAE_start==max(fecha_citaAE_start),"complete","quitar"))) %>% mutate(status=ifelse(all(cambio==FALSE& data.table::shift()->eventlog4
+                                                                                                                                                  eventlog3 %>%                                                                                                                                                  group_by(ID) %>%arrange(fecha_citaAE_start)%>%mutate(cambio=especialidadAE==data.table::shift(especialidadAE,n=1L,fill = "REPE")) %>%mutate(status1=ifelse(cambio==FALSE,"start",NA)) %>%mutate(status2=ifelse(data.table::shift(cambio,n=1,type="lead",fill=FALSE)==FALSE,"complete",NA)) %>% ungroup()-> eventlog4    
+                                                                                                                                                                                                                                                                                                                eventlog4 %>%filter(is.na(status1)==FALSE|is.na(status2)==FALSE) %>% mutate(status=ifelse(status2=="complete","complete",ifelse(is.na(status2)&status1=="start","start",NA))) %>% mutate(status=ifelse(is.na(status),"start",status)) %>% dplyr::select(-c("cambio","status1","status2"))->eventlog5  
+                                                                                                                                                       eventlog5 %>% filter(status=="complete") %>% arrange(ID,fecha_citaAE_start) %>% mutate(activity_instance=1:n())->ff
+                                                                                                                                                                                                                                                                                                                
+eventlog5 %>% left_join(ff %>% dplyr::select(ID,especialidadAE,fecha_citaAE_start,activity_instance),by=c("ID","especialidadAE","fecha_citaAE_start"))->ff1                                                                                                                                                                                                                                                                                             
+ff1 %>% group_by(ID)%>%arrange(fecha_citaAE_start) %>% mutate(activity_instance=ifelse(is.na(activity_instance),data.table::shift(activity_instance,n = 1,type="lead"),activity_instance))->eventlog6                                                                                                                         
+                                                                                                                                                      evLog5<-eventlog6 %>%  mutate(resource=NA) %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )                                                                                                                                                    
+summary(evLog5)
+
+evLog5_DM1<-eventlog6 %>% filter(DM_type=="DM1") %>% 
+  mutate(resource=NA) %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+evLog5_DM2<-eventlog6 %>% filter(DM_type=="DM2") %>% 
+  mutate(resource=NA) %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+evLog5 %>%
+  trace_explorer(n_traces=10)
+
+
+evLog5_DM1 %>%
+  trace_explorer(n_traces=10)
+evLog5_DM2 %>%
+  trace_explorer(n_traces=10)
+
+
+# los primeros 50000
+
+# evLog = head(eventlog, n = 50000) %>%
+#   mutate(activity_instance = 1:nrow(.),
+#          resource = NA,
+#          status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+#   eventlog(
+#     case_id = "ID", #ID del paciente
+#     activity_id = "especialidadAE", #Nombre de la actividad
+#     lifecycle_id = "status", #Nombre del estado de la actividad
+#     activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+#     timestamp = "fecha_citaAE_start", #Fecha del evento
+#     resource_id = "resource" #Resource
+#   )
+
+evLog3<-eventlog3 %>% 
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+########
+evLog3<-eventlog3 %>% 
+  mutate(activity_instance = 1:nrow(.),
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "tipo_citaAE" #Resource
+  )
+
+
+
+
+
+################################################# Por especialidad######################
+evLog1<-eventlog %>% 
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+
+summary(as.factor(eventlog$especialidadAE))
+
+
+evLog1_DM1<-eventlog %>%
+  filter(ID %in% PrevalentesDM1_OUTCOMES$ID)%>% 
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+evLog1_DM2<-eventlog %>%
+  filter(ID %in% PrevalentesDM2_OUTCOMES$ID)%>% 
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+
+
+############################ Por tipo de cita#############################
+evLog2<-eventlog %>% 
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "tipo_citaAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+evLog2_DM1<-eventlog %>%
+  filter(ID %in% PrevalentesDM1_OUTCOMES$ID)%>% 
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "tipo_citaAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+evLog2_DM2<-eventlog %>%
+  filter(ID %in% PrevalentesDM2_OUTCOMES$ID)%>% 
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "tipo_citaAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+########PRUEBA######
+
+evLog2<-eventlog %>% 
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "tipo_citaAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+processmapR::precedence_matrix(evLog2) %>% plot
+
+processmapR::idotted_chart(evLog2 )
+
+processanimateR::animate_process(evLog5_DM1)
+processanimateR::animate_process(evLog5_DM2)
+
+summary(evLog) #Resumen del eventlog
+summary(evLog1)
+summary(evLog1_DM1)
+summary(evLog1_DM2)
+
+```
+
+Vemos como hay 3632 casos/pacientes, y 2343 trazas diferentes. También podemos observar el alto número de visitas a Oftalmología en comparación a las otras especialidades.
+
+Procedemos a obtener las trazas más relevantes para hacernos una primera idea de estas. A continuación, obtenemos los primeros *process maps* (visualizaciones gráficas de las trazas que siguen los pacientes).
+
+```{r}
+############################# Anterior a 2014
+# evLog2<-evLog[evLog$fecha_citaAE_start<"2014-01-01",] #Filtro eventos anteriores al 1/1/2014
+# 
+# # evLog2 %>%
+# #   trace_explorer(coverage=0.37) #Enseño las trazas más comunes que representan como mínimo el 37% de los pacientes (es decir, seleccionas todas las trazas (representan el 100% de los pacientes), quitas la traza que representa menos pacientes, ahora tu total de trazas representa el 99% de pacientes, vas haciendo esto recursivamente hasta que, al quitar una traza, el total de tus trazas represente menos del 37%. Entonces recuperas esta última traza y representas todas las trazas que tienes)
+# 
+# evLog2 %>%
+#   trace_explorer(coverage=0.25) #Enseño las trazas más comunes que representan como mínimo el 37% de los pacientes (es decir, seleccionas todas las trazas (representan el 100% de los pacientes), quitas la traza que representa menos pacientes, ahora tu total de trazas representa el 99% de pacientes, vas haciendo esto recursivamente hasta que, al quitar una traza, el total de tus trazas represente menos del 37%. Entonces recuperas esta última traza y representas todas las trazas que tienes)
+# evLog2 %>%
+#   filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+#   filter_trace_frequency(percentage = 0.5) %>%
+#   process_map(render = T)
+# 
+# evLog2 %>%
+#   filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+#   filter_trace_frequency(percentage = 0.5) %>%
+#   process_map(type_nodes = performance(mean, "months"), #Visión temporal de los nodos, cuánto tiempo de media o mediana o lo que selecciones se tarda en realizar una actividad, en nuestro caso es 0 porque las actividades solo tienen un evento, no hay un inicio y un final
+#               type_edges = performance(mean, "months")) #Visión temporal de las aristas, el tiempo que hay entre el final de una actividad y el inicio de la siguiente (puede ser tiempo negativo si la siguiente empieza antes de que acabe la primera)
+
+
+
+# me gustaría ver las diferencias por tipo de diabetes
+
+
+
+evLog1 %>%
+  trace_explorer(n_traces=2) #Enseño las trazas más comunes que representan como mínimo el 37% de los pacientes (es decir, seleccionas todas las trazas (representan el 100% de los pacientes), quitas la traza que representa menos pacientes, ahora tu total de trazas representa el 99% de pacientes, vas haciendo esto recursivamente hasta que, al quitar una traza, el total de tus trazas represente menos del 37%. Entonces recuperas esta última traza y representas todas las trazas que tienes)
+
+
+evLog1_DM1 %>%
+  trace_explorer(n_traces=10)
+
+
+evLog1_DM2 %>%
+  trace_explorer(n_traces=10)
+
+
+
+
+# evLog1 %>%
+#   filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+#   filter_trace_frequency(percentage = 0.30) %>%
+#   process_map(render = T)
+
+evLog1 %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = 0.35) %>%
+  process_map(render = T)
+
+evLog1 %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = 0.35) %>%
+  process_map(type_nodes = performance(median, "months"), #Visión temporal de los nodos, cuánto tiempo de media o mediana o lo que selecciones se tarda en realizar una actividad, en nuestro caso es 0 porque las actividades solo tienen un evento, no hay un inicio y un final
+              type_edges = performance(median, "months")) #Visión temporal de las aristas, el tiempo que hay entre el final de una actividad y el inicio de la siguiente (puede ser tiempo negativo si la siguiente empieza antes de que acabe la primera)
+
+
+# 
+# evLog1_DM1 %>%
+#   filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+#   filter_trace_frequency(percentage = 0.35) %>%
+#   process_map(render = T)
+
+evLog1_DM1 %>%
+  filter_trace_frequency(percentage = 0.07) %>%
+  process_map(render = T)
+
+evLog1_DM2 %>%
+  filter_trace_frequency(percentage = 0.07) %>%
+  process_map(render = T)
+
+# 
+# evLog1_DM1 %>%
+#   filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+#   filter_trace_frequency(percentage = 0.35) %>%
+#   process_map(type_nodes = performance(median, "months"), #Visión temporal de los nodos, cuánto tiempo de media o mediana o lo que selecciones se tarda en realizar una actividad, en nuestro caso es 0 porque las actividades solo tienen un evento, no hay un inicio y un final
+#               type_edges = performance(median, "months")) #Visión temporal de las aristas, el tiempo que hay entre el final de una actividad y el inicio de la siguiente (puede ser tiempo negativo si la siguiente empieza antes de que acabe la primera)
+
+evLog1_DM1 %>%
+  filter_trace_frequency(percentage = 0.35) %>%
+  process_map(type_nodes = performance(median, "months"), #Visión temporal de los nodos, cuánto tiempo de media o mediana o lo que selecciones se tarda en realizar una actividad, en nuestro caso es 0 porque las actividades solo tienen un evento, no hay un inicio y un final
+              type_edges = performance(median, "months")) #Visión temporal de las aristas, el tiempo que hay entre el final de una actividad y el inicio de la siguiente (puede ser tiempo negativo si la siguiente empieza antes de que acabe la primera)
+
+
+
+
+evLog1_DM2 %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = 0.35) %>%
+  process_map(render = T)
+
+evLog1_DM2 %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = 0.35) %>%
+  process_map(type_nodes = performance(median, "months"), #Visión temporal de los nodos, cuánto tiempo de media o mediana o lo que selecciones se tarda en realizar una actividad, en nuestro caso es 0 porque las actividades solo tienen un evento, no hay un inicio y un final
+              type_edges = performance(median, "months")) #Visión temporal de las aristas, el tiempo que hay entre el final de una actividad y el inicio de la siguiente (puede ser tiempo negativo si la siguiente empieza antes de que acabe la primera)
+
+
+
+
+
+```
+
+En las trazas más representativas vemos un alto porcentaje de trazas compuestas por visitas al oftalmólogo. Se tendría que debatir si el *eventlog* se debería mantener tal y como está o agrupar las visitas seguidas al oftalmólogo como una sola (al menos para poder recoger una muestra más variada en este gráfico) y si hacer lo mismo para las demás actividades. Enseño las trazas más comunes que representan como mínimo el 37% de los pacientes (es decir, seleccionas todas las trazas (representan el 100% de los pacientes), quitas la traza que representa menos pacientes, ahora pongamos que tu total de trazas representa el 99% de pacientes, vas haciendo esto recursivamente hasta que, al quitar una traza, el total de tus trazas represente menos del 37%. Entonces recuperas esta última traza y representas todas las trazas que tienes).
+
+
+En el siguiente gráfico hemos visto un *process map* que representa aproximadamente un 90% de los casos. Este es un ejemplo de "mapa espagueti", es decir, casi ininterpretable debido al gran número de aristas que tiene el grafo. Por lo tanto, deberíamos intentar filtrar el número de casos que representamos disminuyendo el porcentaje mencionado anteriormente, o bien directamente eliminando una de las actividades del grafo.
+
+Lo que hemos hecho en el siguiente mapa ha sido disminuir el porcentaje al 50%. De esta manera obtenemos un mapa más interpretable. Ahora, podemos intentar analizar los numeros que aparecen en este mapa. Los números en las aristas representan el número de veces que las personas han ido del nodo/actividad de partida hasta el nodo de destino (una persona puede haber pasado por una arista más de una vez, si una persona pasa *x* veces, se contarán las *x* veces). Los números de los nodos/actividades representan el número de veces que se ha pasado por ese nodo (otra vez, una persona puede pasar más de una vez por un nodo). Cuanto más oscuro está un nodo, más veces se ha pasado por él. Lo mismo con las aristas. A parte de la frecuencia absoluta de paso, también podríamos haber representado la frecuencia relativa.
+
+En el siguiente gráfico se observa un mapa temporal. Aquí los números de los nodos representan la media (también se podría representar la mediana u otras medidas) de tiempo que una persona se pasa haciendo la actividad representada por el nodo. En nuestro caso siempre es 0 porque nuestras actividades se cuentan como visitas puntuales. En el caso de las aristas, el número representa el tiempo que hay entre el final de la actividad de partida y el inicio de la actividad de destino (en nuestro caso, el tiempo de inicio y de finalización son el mismo). Algo curioso es que el tiempo entre dos actividades diferentes suele ser medio año, mientras que el tiempo entre las propias especialidades es dos meses inferior aproximadamente. Esto último puede deberse a que, si el paciente presenta un cuadro preocupante, el tiempo entre visitas será mucho inferior y esta media bajará.
+
+
+
+
+```{r}
+eventlog_Charls= read.csv("Prueba datos random/Charlson_fecha_score.csv", header=TRUE, sep = ";")
+
+
+eventlog_Charls%>%filter(score_ch>=3) %>% dplyr::select(id,ami,chf,pvd,cevd,dementia,copd,rheumd_ch,mld,diabwoc,hp,rend,canc,metacanc,aids)->eventlog_Charls_multiple
+
+
+colnames(eventlog_Charls_multiple)<-c("ID","Myocardial_infarction","Congestive_heart_failure","Peripheral_vascular_disease","Cerebrovascular_disease","Dementia","Chronic_pulmonary_disease","Rheumatic_disease","Liver_disease","Diabetes","Hemiplegia","Renal_disease","Cancer","Metastatic_solid_tumour","AIDS_HIV")
+
+
+
+
+
+set.seed(1234)
+# sample(x=eventlog_Charls$id,size = 50000)
+
+# eventlog_Charls_multiple[which(eventlog_Charls_multiple$id %in% sample(x=eventlog_Charls_multiple$id,size = 50001)),]->evC2
+
+# evC2[,c(1:43)]%>% reshape2::melt(id.vars=("id"),na.rm = TRUE)->Evnt.log.Char
+eventlog_Charls_multiple[,c(1:15)]%>% reshape2::melt(id.vars=("ID"),na.rm = TRUE)->Evnt.log.Char
+
+
+colnames(Evnt.log.Char)<-c("ID","Comorbilidad","Fecha_Comorbilidad")
+Evnt.log.Char = Evnt.log.Char[order(Evnt.log.Char$ID),]
+Evnt.log.Char$Fecha_Comorbilidad = as.POSIXct(Evnt.log.Char$Fecha_Comorbilidad, tz = "", format="%Y-%m-%d" ,
+                                 tryFormats = c("%Y/%m/%d",
+                                                "%Y/%m/%d"),
+                                 optional = FALSE) #Sirve para transformar fecha a un formato con el que podemos trabajar
+
+Evnt.log.Char_ = Evnt.log.Char %>%
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "Comorbilidad", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "Fecha_Comorbilidad", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+summary(Evnt.log.Char_) #Resumen del eventlog
+
+
+
+
+Evnt.log.Char_ %>%
+  trace_explorer(coverage=0.15) #Enseño las trazas más comunes que representan como mínimo el 37% de los pacientes (es decir, seleccionas todas las trazas (representan el 100% de los pacientes), quitas la traza que representa menos pacientes, ahora tu total de trazas representa el 99% de pacientes, vas haciendo esto recursivamente hasta que, al quitar una traza, el total de tus trazas represente menos del 37%. Entonces recuperas esta última traza y representas todas las trazas que tienes)
+
+
+
+
+# Evnt.log.Char_ %>%
+#   filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+#   filter_trace_frequency(percentage = 0.50) %>%
+#   process_map(render = T)
+
+Evnt.log.Char_ %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = 0.15) %>%
+  process_map(render = T)
+
+Evnt.log.Char_ %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = 0.15) %>%
+  process_map( #Visión temporal de los nodos, cuánto tiempo de media o mediana o lo que selecciones se tarda en realizar una actividad, en nuestro caso es 0 porque las actividades solo tienen un evento, no hay un inicio y un final
+              type_edges = performance(median, "years")) #Visión temporal de las aristas, el tiempo que hay entre el final de una actividad y el inicio de la siguiente (puede ser tiempo negativo si la siguiente empieza antes de que acabe la primera)
+
+
+
+ 
+
+
+# 
+# 
+# Los códigos CIAP2 son los siguientes: 
+#   grupo CIAP2 
+# ami K75 ami K76 
+# chf K76 chf K77 
+# pvd K92 pvd K99 
+# cevd K89 cevd K90 cevd K91 
+# dementia P70 
+# copd R95 
+# rheumd_ch L88
+# pud_ch D86
+# pud_ch D85
+# mld D72 mld D97
+# diabwoc T89 diabwoc T90 
+# diabwic 
+# hp N18
+# rend K87 rend U88 rend U99.01 rend U99
+# canc D77 canc R85 canc A79 canc D74 canc D75 canc D76 canc R84 canc B74 canc L71 canc S77 canc N74 canc X76 canc X77 canc X75 canc W72 canc Y78 canc Y77 canc U75 canc U77 canc U76 canc F74 canc T71 canc T73 canc B72 canc B73
+# aids B90 carit K80 carit K79 carit K78 carit K04 carit K05 valv K83 valv K73 pcd K93 pcd K82 hypunc K86 hypc K87 para N18 ond N99 ond N87 ond N08 ond N86 ond N88 ond N19 ond N07 diabunc T89 diabunc T90 diabc hypothy T80 hypothy T86 rf U99.01 rf U99 ld D72 ld D97 pud_hx D86 pud_hx D85 lymph B72 lymph B74 solidtum D77 solidtum R85 solidtum A79 solidtum D74 solidtum D75 solidtum D76 solidtum R84 solidtum B74 solidtum L71 solidtum N74 solidtum X76 solidtum X77 solidtum X75 solidtum W72 solidtum Y78 solidtum Y77 solidtum U75 solidtum U77 solidtum U76 solidtum F74 solidtum T71 solidtum T73 solidtum S77 rheumd_hx L88 rheumd_hx K99 rheumd_hx B72 rheumd_hx L88.01 rheumd_hx L84 coag B83 obes T83 obes T82 wloss T91 wloss T08 fed T99 blane B80 dane B80 dane B81 alcohol P15 alcohol D87 alcohol D97 alcohol A86 drug P19 drug P18 psycho P72 psycho P98 psycho P73 depre P76 depre P82 depre P02
+
+
+
+
+
+```
+
+
+
+
+
+
+
+
+## Farmacología
+
+### Farmacología sin mediciones de hemoglobina glicosilada
+
+Pasamos al enfoque farmacológico. Hemos trabajado con los pacientes prevalentes con DM2. 
+
+La estructura de las nuevas actividades es de *XY*. *X* es el número de tratamientos orales que está tomando un paciente en un determinado momento. *Y* es la presencia de insulina (*I*) o la ausencia de ella (*_*). A parte de estos nodos, siempre hay dos actividades que son *SUPERV*, es decir, el momento en el que se ha terminado el seguimiento de un paciente sin que este fallezca (censura por fin del estudio o por cambio de centro) o bien *DEFUN* (el momento en el que el paciente murió).
+
+```{r}
+outnav2 = read.csv("R:/PI/FIS2019/Ayuda Hugo/Prueba datos random/outnav2.csv", header=TRUE, sep = ",")
+eventlog2 =  read.csv("R:/PI/FIS2019/Ayuda Hugo/Prueba datos random/datos/DM2_prevalentes.csv", header=TRUE, sep = ",")
+eventlog = right_join(eventlog2, outnav2, by=c("ID" = "ID")) %>% select(ID, patron2:resource, causaINACTIVObasal, sexo, fecha_ultima_visitaSEGUIMIENTO_stop)
+eventlog = eventlog %>% filter(causaINACTIVObasal!="TRASLADADO" | is.na(causaINACTIVObasal)) %>% mutate(causaINACTIVObasal = ifelse(is.na(causaINACTIVObasal), "SUPERVIVENCIA", causaINACTIVObasal))
+dm2inifin = eventlog %>% select(ID) %>% mutate(sexo = eventlog$sexo, date = eventlog$fecha_ultima_visitaSEGUIMIENTO_stop, nfar = ifelse(eventlog$causaINACTIVObasal=="SUPERVIVENCIA", "SUPERV.", "DEFUN."), causaINACTIVObasal = eventlog$causaINACTIVObasal) %>% distinct() %>% mutate(actins = (max(eventlog$actins) + 1) : (max(eventlog$actins) + length(unique(eventlog$ID))))
+
+eventlog$date = as.POSIXct(eventlog$date, tz = "", format="%Y-%m-%d" ,
+                           tryFormats = c("%Y/%m/%d",
+                                          "%Y/%m/%d"),
+                           optional = FALSE)
+
+dm2inifin$date = as.POSIXct(dm2inifin$date, tz = "", format="%Y-%m-%d" ,
+                           tryFormats = c("%Y/%m/%d",
+                                          "%Y/%m/%d"),
+                           optional = FALSE)
+
+eventlog = bind_rows(eventlog, dm2inifin)
+
+evLog = eventlog %>%
+  mutate(resource = NA) %>%
+  eventlog(
+    case_id = "ID",
+    activity_id = "nfar",
+    lifecycle_id = "cycle",
+    activity_instance_id = "actins",
+    timestamp = "date",
+    resource_id = "resource"
+  )
+
+summary(evLog)
+
+evLog %>%
+  filter_activity_frequency(percentage = 1) %>%
+  filter_trace_frequency(percentage = .75) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+```
+
+En este caso, tenemos aproximadamente el mismo número de trazas que en el eventlog anterior, pero aproximadamente el cuádruple de casos/pacientes.
+
+El primer *process map* que obtenemos se queda con las trazas más representativas que incluyen aproximadamente el 75% de los casos. En nuestros datos, vemos como la gran mayoría de estos pacientes empiezan el periodo de seguimiento con un solo tratamiento oral sin insulina (seguramente metformina). Luego, un 11% aproximadamente de pacientes empezaron el periodo de seguimiento con insulina sin tratamientos orales, y un 7% lo empezaron por 2 tratamientos orales sin insulina. Es importante destacar que no podemos asegurar nada del conjunto total de pacientes, simplemente de los pacientes que están incluidos en la restricción que aplicamos. De estos pacientes, vemos como el 81% aproximadamente sobrevive, mientras que el 19% muere.
+
+Vemos que si hacemos los cocientes del porcentaje de gente con un último tratamiento de un solo tratamiento oral sin insulina y insulina sin tratamiento oral para cada grupo es mucho mayor para los pacientes que sobrebviven que para los que mueren. Esto es normal ya que la gente que muere está en malas condiciones y, por tanto, suelen estar recibiendo un tratamiento más severo (la insulina) que los que sobreviven.
+
+La pregunta que quizás os estéis formulando es: ¿y esto no se puede calcular con los métodos clásicos de estadística sin tener que pasar por analizar un mapa de procesos? La respuesta es que sí, se puede. La mayor parte de interpretaciones que hemos sacado de nuestros mapas son cosas que se pueden conseguir con otros métodos, pero de esta manera se pueden conseguir representaciones visuales que tengan en cuenta el proceso entero, cosa que facilita la interpretación a ciertas personas. Por ejemplo, gracias a este mapa de procesos, se puede deducir rápidamente que la gran mayoría de gente de nuestro estudio empezará con un tratamiento sin insulina y que seguramente así se quede hasta su supervivencia. Además también es relevante tener una idea general del flujo de gente que aumenta la intensidad de su tratamiento y que luego lo revierte. Para esto, es fundamental estar seguros y seguras de que nuestro eventlog está bien definido y se atañe al caso que queremos estudiar.
+
+A continuación tenemos dos gráficos definidos únicamente para los pacientes que acabaron superviviendo. Después de ellos, tenemos dos gráficos con los pacientes fallecidos. De esta manera, podemos encontrar diferencias entre las trayectorias de ambos grupos.
+
+```{r}
+evLogSup = evLog %>%  filter(causaINACTIVObasal=="SUPERVIVENCIA")
+
+evLogSup %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .65) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+
+evLogSup %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .65) %>%
+  process_map(type_nodes = performance(mean, "months"),
+              type_edges = performance(mean, "months"))
+```
+
+```{r}
+evLogDefun = evLog %>%  filter(causaINACTIVObasal=="DEFUNCION")
+evLogDefun %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .65) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+
+evLogDefun %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .65) %>%
+  process_map(type_nodes = performance(mean, "months"),
+              type_edges = performance(mean, "months"))
+```
+
+Lo mismo podemos hacer para las trayectorias entre hombres y mujeres (o para cualquier otra variable categórica).
+
+```{r}
+evLogMujer = evLog %>%  filter(sexo=="mujer")
+evLogMujer %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .75) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+
+evLogHombre = evLog %>%  filter(sexo=="hombre")
+evLogHombre %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .75) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+```
+
+Otra manera de representar los datos son los *dotted charts*. En el eje de las abscisas (horizontal), encontramos el tiempo que pasa desde un momento inicial. En los dos primeros gráficos, el tiempo inicial es el mismo para todos los pacientes, y se corresponde a la fecha de la primera medicación registrada. Los pacientes se encuentran en el eje de las ordenadas (vertical), y están ordenados según el tiempo de seguimiento en orden descendiente (a medida que se sube por el eje vertical obtenemos pacientes con una traza más reducida). Es decir, si trazamos una línea horizontal en la gráfica estaremos obteniendo la traza de un paciente. En los dos últimos, el tiempo inicial es la fecha del primer registro de nuestros datos. En el eje vertical se encuentran los pacientes ordenados según su primer registro en orden descendiente. Si nuestro proceso fuera muy marcado, se observarían ciertos patrones con los puntos. Al haber tanta libertad en nuestro proceso y no haber un inicio común (es decir, la detección de la DM2, todos los pacientes ya habían sido diagnosticados con DM2 antes del inicio de nuestro seguimiento) para todos los pacientes obtenemos una sopa de puntos sin mucho sentido. Hay varios ejemplos por internet bastante esclarecedores para este tipo de representaciones (por ejemplo, https://miro.medium.com/max/850/1*F69BGJj78ae0P05RhWfneQ.png).
+
+```{r, warning=FALSE}
+evLogDefun %>%  
+  dotted_chart(x = "relative")
+
+evLogSup %>%  
+  dotted_chart(x = "relative")
+
+evLogDefun %>%  
+  dotted_chart(x = "absolute")
+
+evLogSup %>%  
+  dotted_chart(x = "absolute")
+```
+
+### Farmacología con mediciones de hemoglobina glicosilada
+
+En esta sección, introdujimos a nuestro *eventlog* las mediciones de hemoglobina glicosilada, que sirven para determinar si un paciente está dentro de los márgenes deseados en cuanto al nivel glucémico o no. En esta parte, además de agregar si una persona se encuentra en un buen nivel glucémico (*Hbam75*, inferior a 7.5) o no (*HbaM75* superior a 7.5), hemos modificado la estuctura de nuestras actividades. Ahora tienen la estructura de *XYZ*, donde *X* es, como antes, el número de medicamentos orales que se está tomando el paciente a la vez, *Y* también mantiene el significado de la presencia (*I*) o ausencia (*_*) de insulina en su tratamiento y, finalmente, *Z* representa diversas circunstancias. Si *Z = _*, querrá decir que el tratamiento marcado por *XY* no es precedido por ninguna medición. Si *Z = 0*, significa que, o bien viene precedido por una medición buena, o bien de otra medicación sin mediciones entre medio. Finalmente, si *Z = 1* o *Z = 2*, significa que la persona acaba de recibir una medición de nivel alto de glucemia por primera vez desde que está con ese tratamiento en específico (en el caso de *Z = 1*) o que es la segunda vez o más (en el caso de *Z = 2*).
+
+A continuación obtenemos el número de eventos, casos y trazas de nuestro nuevo *eventlog*. También obtenemos un resumen de las trazas del eventlog, donde podemos observar que son bastante largas. Este eventlog tiene ciertas particularidades. Para empezar, se ha obligado a que la primera actividad de las trazas fuera un solo medicamento oral (no aparece en el código). Además, solo nos quedamos con las trazas que contienen una medición mala.
+
+```{r}
+#########################2-5-22############################
+output = read.csv("R:/PI/FIS2019/Ayuda Hugo/Prueba datos random/output.csv")
+
+eventlog2 = read.csv("R:/PI/FIS2019/Ayuda Hugo/Prueba datos random/datos/DM2_prevalentes.csv", header=TRUE, sep = ",")
+eventlog2 = eventlog2[-c(12511, 19365),]
+eventlog = inner_join(eventlog2, output, by=c("ID" = "ID"))
+eventlog = eventlog %>% mutate(causaINACTIVObasal = ifelse(is.na(causaINACTIVObasal) | causaINACTIVObasal == "TRASLADADO", "SUPERVIVENCIA", causaINACTIVObasal))
+eventlog$date = as.POSIXct(eventlog$date, tz = "", format="%Y-%m-%d" ,
+                                         tryFormats = c("%Y/%m/%d",
+                                                        "%Y/%m/%d"),
+                                         optional = FALSE)
+
+#Forzamos al menos una medición "mala"
+evLog = eventlog %>%
+  mutate(resource = NA) %>%
+  eventlog(
+    case_id = "ID",
+    activity_id = "nfar2",
+    lifecycle_id = "cycle",
+    activity_instance_id = "actins",
+    timestamp = "date",
+    resource_id = "resource"
+  ) %>% filter_activity_presence("hbaM75")
+
+n_events(evLog)
+n_cases(evLog)
+n_traces(evLog)
+trace_length(evLog)
+``` 
+
+Vemos que en este caso hay una proporción mucho mayor que en los anteriores casos de trazas respecto al total de casos.
+
+A continuación se obtienen diferentes mapas de proceso, aumentando un 15% la cantidad de pacientes representados como mínimo por las trazas de cada uno. Vemos como cada salto de 15% aumenta más la complejidad del mapa de procesos que el salto anterior. Esto se puede explicar gracias a la gráfica que tiene el número relativo de trazas en el eje de abscisas y la proporción de casos representados en las ordenadas. Aumentando el número de casos representados del 20% al 35% hay un aumento minúsculo del número de trazas. En cambio, pasar del 50% al 65% hace que el número de trazas representadas se dispare, haciendo de esta manera que obtengamos un mapa muchísimo más complejo y prácticamente imposible de interpretar, conocido como *spaguetti map*.
+
+Además, también se han representado las trazas más relevantes, es decir, las que representan a un mayor número de casos (llegando hasta el 30% acumulado aproximadamente).
+
+```{r}
+evLog %>% 
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .2) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+
+evLog %>% 
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .35) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+
+evLog %>% 
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .5) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+
+evLog %>% 
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .65) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+
+evLog %>%
+    trace_coverage("trace") %>%
+    plot()
+
+evLog %>% 
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = .35) %>%
+  process_map(type_nodes = performance(mean, "months"),
+              type_edges = frequency("relative_case"))
+
+evLog %>% trace_explorer(coverage = 0.3)
+
+```
+
+Finalamente presentamos los *dotted chart* absoluto y relativo de nuestro *event log*, donde no puedo observar ningún tipo de patrón relevante.
+
+```{r}
+evLog %>% filter_activity_frequency(percentage=0.8) %>%
+  dotted_chart(x = "relative")
+
+evLog %>% filter_activity_frequency(percentage=0.8) %>%
+  dotted_chart(x = "absolute")
+```
+
+Todo este análisis que acabamos de realizar ha sido un primer acercamiento al análisis descriptivo usando process mining. Hay otros acercamientos posibles, como algorismos para cuantificar la similitud de las trazas con las trazas teóricas que se deberían seguir o la realización de análisis de supervivencia teniendo en cuenta las trazas de los pacientes.
+
+
+
+# Cosas a tener en cuenta
+
+- Hay muchísimas otras funciones del paquete BupaR (el que contiene la mayoría de las funciones que contiene este documento) que deberías probar. Te pueden hacer la vida mucho más fácil a la hora de trabajar con el event log. La creación del event log es súper súper súper importante. Tienes que tener un buen event log que se ajuste a la pregunta que quieres responder. A pesar de esto, BupaR creo que solo es un buen programa para la visualización del process mining.
+
+- Acabo de decir que BupaR es muy bueno para la visualización. El problema es que, seguramente, tu contrato no vaya de esto. En el process mining hay varias fases más. No sé si ya lo habrás leído ya. A parte del process discovery (esta parte más visual) están el conformance checking (ajuste de tu modelo a la realidad) y el enhancement (la parte predictiva). Tu trabajo es aplicar algún método para la parte predictiva. Quieres desarrollar algún método basado en el process mining para predecir algún aspecto de las rutas que toman los pacientes de DM2 en el sistema navarro de salud, y también de los pacientes de la resta de enfermedades de la red con la que estás trabajando. Verás que hay enfermedades (como el ictus) cuyas trayectorias son mucho más sencillas que la de la DM2. Así pues, tendrás que comprobar en qué enfermedades tiene más sentido o menos aplicar cierto método predictivo.
+
+- Hay varios métodos de process mining desarrollados con anterioridad. La mayoría se encuentran en una plataforma llamada ProM. Es un programa que te tendrás que descargar (si lo quieres) gratuitamente. Por lo poco que lo he utilizado, la verdad es que me ha dado bastantes problemas. A pesar de esto, creo que si tienes muy claras las herramientas que quieres utilizar, te será de gran utilidad. Muchos papers que leerás utilizan herramientas de ProM.
+
+- Hay una librería de Pyhon llamada PM4Py. Creo que tiene las mismas utilidades que BupaR pero, además, hay una gran documentación. Lo puedes encontrar en https://pm4py.fit.fraunhofer.de/documentation. Si quieres aplicar conformance checking, lo miraría por aquí.
+
+- También considero importante mirarse un poco el tema de las Petri Nets para entender mejor la minería de procesos. Es bastante básico y muchos algoritmos se basan en ellas o en algun modelo derivado de ellas. Las indicaciones (por ejemplo de administración de medicamentos) recomendadas seguramente se puedan modelizar usando una red de Petri. Puede salir algo interesante de allí. Seguramente para ver algo de Conformance Checking, más concretamente, como se ajustan nuestras trayectorias a las indicaciones o al modelo teórico ideal.
+
+- Para toda la parte de las predicciones veo súper importante tener unos conocimientos sólidos de Machine Learning. En casi todos los papers que he encontrado hacen uso de algoritmos de Machine Learning y son bastante pesados de leer. Aún así, se pueden ir siguiendo. EL problema supongo que será encontrar una manera de adaptar estos algoritmos a nuestros Logs (ya sea en las cohortes de diabetes u otras dentro de la red).
+
+- Si quieres hacer más pruebas te sugiero que vayas probando cosillas pero con una cohorte de incidentes, no de prevalentes. A pesar de esto, supongo que cuando hayas entrado ya tendrás la base de datos de la DM2 o te quedará poco para recibirla.
+
+- Obviamente también creo que tienes que tener una visión global de la diabetes en el caso de que no la tengas, básicamente porque es la base de datos principal en tu equipo de investigación y con la que más tendrás que trabajar. Para informarte sobre esto, podrás encontrar las guías de la ADA y otra de Navarra sobre la Diabetes Mellitus de tipo 2. Te las copio en la carpeta que contiene este documento/Rmarkdown. La de Estados Unidos está más actualizada. No te la leas entera o te dará una embolia. Míratela por encima, sobretodo las guías de los tratamientos.
+
+- Hablando de esto, hay un archivo de Excel en el que se encuentra la información de la base de datos de la DM2 que hemos pedido. En esta, hay varias pestañas que se llaman "ADA ___" (o algo así) en las que hay resúmenes de los apartados más fundamentales de la ADA EEUU 2022. Te dejo el Excel de la base de datos en esta carpeta. Quizás cuando te unas te encontrarás con que haya cambiado ligeramente. Además estamos a la espera de saber la disponibilidad de las variables para cada una de los grupos de las otras CCAA (no todo funciona igual de bien que en Navarra).
+
+- Esta base de datos es muy importante, te recomiendo que te la mires e intentes entender todas las variables con las que te encontrarás.
+
+- También te adjunto un documento en el que hay documentación que te irá muy bien. En serio, léete los papers que te he adjuntado. Algunos son los super asfixiantes de Machine Learning que he mencionado antes. Pero bueno, si quieres ideas para predicción, empieza por ahí y ya buscarás otros más tarde. Si te encallas, no tengas miedo de preguntar a ninguno de tus compis, son todos muy majos.
+
+- A parte, hay una carpeta que se llama "Prueba Datos Random". No es muy importante que te la mires, básicamente son varias cositas que he ido probando, pero lo más importante es lo que encontrarás en este documento/RMarkdown.
+
+
+
+
+
+
+```{r}
+
+```
+

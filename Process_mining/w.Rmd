@@ -1,0 +1,338 @@
+---
+title: "Bardena Milenia-Minería"
+output: powerpoint_presentation
+date: "2022-10-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+
+```{r librerias, results = FALSE, comment=FALSE, echo=FALSE, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(mongolite)
+library(jsonlite)
+library(ggplot2)
+
+library(bupaR)
+library(processmapR)
+library(edeaR)
+library(pals)
+
+library(openxlsx)
+library(dplyr)
+library(processanimateR)
+library(heuristicsmineR)
+library(petrinetR)
+# library(fuzzymineR)
+library(devtools)
+library(tidyr)
+library(forcats)
+```
+
+
+## ¿Minería?
+
+…descubrir patrones (…) enterrados en grandes volúmenes de datos
+
+
+## Tres ejemplos de minería
+
+
+- Minería en la prescripción de fármacos.
+- Minería del proceso asistencial
+- Minería de la multimorbilidad
+
+
+
+```{r carga de datos proceso asistencial DM, results = FALSE, comment=FALSE, echo=FALSE, include=FALSE}
+
+load("F:/Navarrabiomed/Methodology/Github/CODE/BARDENA/Process_mining/Aprendiendo/Charla28N/Prueba datos random/Prevalentes_DM1.Rdata")
+load("F:/Navarrabiomed/Methodology/Github/CODE/BARDENA/Process_mining/Aprendiendo/Charla28N/Prueba datos random/Prevalentes_DM2.Rdata")
+##############
+eventlog = read.csv("Prueba datos random/tabla_AE_a.csv", header=TRUE, sep = ",")
+
+eventlog = eventlog[which(eventlog$especialidadAE %in% c("OFTALMOLOGIA","RADIODIAGNOSTICO","ENDOCRINOLOGIA Y NUTRICION","TRAUMATOLOGIA Y ORTOPEDIA","CARDIOLOGIA","DIGESTIVO","SALUD MENTAL","UROLOGIA","HEMATOLOGIA","NEUROLOGIA") & eventlog$fecha_citaAE_start != "NA"),] # originalmente se seldeccionan estas 3especialidades_c("NEFROLOGIA", "OFTALMOLOGIA", "CARDIOLOGIA","DERMATOLOGIA","NEUROLOGIA","NUTRICION Y DIETETICA","SALUD MENTAL", "ENDOCRINOLOGIA Y NUTRICION")
+
+eventlog = eventlog[order(eventlog$ID),]
+eventlog$fecha_citaAE_start = as.POSIXct(eventlog$fecha_citaAE_start, tz = "", format="%Y-%m-%d" ,
+                                 tryFormats = c("%Y/%m/%d",
+                                                "%Y/%m/%d"),
+                                 optional = FALSE) #Sirve para transformar fecha a un formato con el que podemos trabajar
+eventlog %>%
+  arrange(ID,fecha_citaAE_start)->eventlog
+
+eventlog %>%
+  mutate(DM_type=factor(ifelse(
+    ID %in% PrevalentesDM1_OUTCOMES$ID,1,0),
+                        levels=c(0,1),
+                        labels=c("DM2","DM1")))->eventlog3
+
+eventlog3 %>%
+  group_by(ID) %>%
+  arrange(fecha_citaAE_start)%>%
+  mutate(cambio=especialidadAE==data.table::shift(especialidadAE,n=1L,fill = "REPE"))%>%
+  mutate(status1=ifelse(cambio==FALSE,"start",NA))%>%
+  mutate(status2=ifelse(data.table::shift(cambio,n=1,type="lead",fill=FALSE)==FALSE,"complete",NA)) %>% ungroup()-> eventlog4    
+                                                                                                        PrevalentesDM1_OUTCOMES%>%dplyr::select(ID,TABACO,codCNES2) %>% full_join(PrevalentesDM2_OUTCOMES%>%dplyr::select(ID,TABACO))->vars_sociec
+
+                                                                                                      eventlog4 %>%
+                                                                                                                                                                                                                filter(is.na(status1)==FALSE|is.na(status2)==FALSE) %>% mutate(status=ifelse(status2=="complete","complete",ifelse(is.na(status2)&status1=="start","start",NA))) %>% mutate(status=ifelse(is.na(status),"start",status)) %>% dplyr::select(-c("cambio","status1","status2"))->eventlog5  
+                                                                                                                                                       eventlog5 %>% filter(status=="complete") %>% arrange(ID,fecha_citaAE_start) %>% mutate(activity_instance=1:n())->ff
+                                                                                                                                                                                                                                                                                                                
+eventlog5 %>% left_join(ff %>% dplyr::select(ID,especialidadAE,fecha_citaAE_start,activity_instance),by=c("ID","especialidadAE","fecha_citaAE_start"))->ff1                                                                                                                                                                                                                                                                                             
+ff1 %>%
+  group_by(ID)%>%arrange(fecha_citaAE_start) %>%
+  mutate(activity_instance=ifelse(
+    is.na(activity_instance),data.table::shift(activity_instance,n = 1,type="lead"),activity_instance))->eventlog6                                                                                                                         
+eventlog6 %>%left_join(vars_sociec,by="ID")->eventlog6
+
+
+
+evLog5<-eventlog6 %>%
+                                                                                                         mutate(resource=NA) %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )                                                                                                                                                    
+summary(evLog5)
+
+evLog5_DM1<-eventlog6 %>% filter(DM_type=="DM1") %>% 
+  mutate(resource=NA) %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+evLog5_DM2<-eventlog6 %>% filter(DM_type=="DM2") %>% 
+  mutate(resource=NA) %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "especialidadAE", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "fecha_citaAE_start", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+```
+
+
+
+```{r carga de datos procesos de multimorbilidad Navarros, results = FALSE, comment=FALSE, echo=FALSE, include=FALSE}
+
+##Datos de los procesos de multimorbilidad de todos los navarros
+eventlog_Charls= read.csv("Prueba datos random/Charlson_fecha_score.csv", header=TRUE, sep = ";")
+
+
+eventlog_Charls%>%filter(score_ch>=3) %>% dplyr::select(id,ami,chf,pvd,cevd,dementia,copd,rheumd_ch,mld,diabwoc,hp,rend,canc,metacanc,aids)->eventlog_Charls_multiple
+
+
+colnames(eventlog_Charls_multiple)<-c("ID","Myocardial_infarction","Congestive_heart_failure","Peripheral_vascular_disease","Cerebrovascular_disease","Dementia","Chronic_pulmonary_disease","Rheumatic_disease","Liver_disease","Diabetes","Hemiplegia","Renal_disease","Cancer","Metastatic_solid_tumour","AIDS_HIV")
+
+set.seed(1234)
+
+eventlog_Charls_multiple[,c(1:15)]%>% reshape2::melt(id.vars=("ID"),na.rm = TRUE)->Evnt.log.Char
+
+
+colnames(Evnt.log.Char)<-c("ID","Comorbilidad","Fecha_Comorbilidad")
+Evnt.log.Char = Evnt.log.Char[order(Evnt.log.Char$ID),]
+Evnt.log.Char$Fecha_Comorbilidad = as.POSIXct(Evnt.log.Char$Fecha_Comorbilidad, tz = "", format="%Y-%m-%d" ,
+                                 tryFormats = c("%Y/%m/%d",
+                                                "%Y/%m/%d"),
+                                 optional = FALSE) #Sirve para transformar fecha a un formato con el que podemos trabajar
+
+
+
+Evnt.log.Char_ = Evnt.log.Char %>%
+  mutate(activity_instance = 1:nrow(.),
+         resource = NA,
+         status = "complete") %>% #Añade las activity instances, pq al no haber previamente, a cada evento le ponemos una diferente
+  eventlog(
+    case_id = "ID", #ID del paciente
+    activity_id = "Comorbilidad", #Nombre de la actividad
+    lifecycle_id = "status", #Nombre del estado de la actividad
+    activity_instance_id = "activity_instance", #ID de la actividad que referencia el evento
+    timestamp = "Fecha_Comorbilidad", #Fecha del evento
+    resource_id = "resource" #Resource
+  )
+
+
+```
+
+
+```{r carga de datos para proceso de prescripcion}
+outnav2 = read.csv("Prueba datos random/outnav2.csv", header=TRUE, sep = ",")
+eventlog2 =  read.csv("Prueba datos random/DM2_prevalentes.csv", header=TRUE, sep = ",")
+eventlog_GUAT = right_join(eventlog2, outnav2, by=c("ID" = "ID")) %>% select(ID, patron2:resource, causaINACTIVObasal, sexo, fecha_ultima_visitaSEGUIMIENTO_stop)
+
+
+eventlog_GUAT = eventlog_GUAT %>%
+  filter(causaINACTIVObasal!="TRASLADADO" | is.na(causaINACTIVObasal)) %>%
+  mutate(causaINACTIVObasal = ifelse(is.na(causaINACTIVObasal), "SUPERVIVENCIA", causaINACTIVObasal))
+dm2inifin = eventlog_GUAT %>%
+  select(ID) %>%
+  mutate(sexo = eventlog_GUAT$sexo, date = eventlog_GUAT$fecha_ultima_visitaSEGUIMIENTO_stop, nfar = ifelse(eventlog_GUAT$causaINACTIVObasal=="SUPERVIVENCIA", "SUPERV.", "DEFUN."), causaINACTIVObasal = eventlog_GUAT$causaINACTIVObasal) %>%
+  distinct() %>%
+  mutate(actins = (max(eventlog_GUAT$actins) + 1) : (max(eventlog_GUAT$actins) + length(unique(eventlog_GUAT$ID))))
+
+eventlog_GUAT$date = as.POSIXct(eventlog_GUAT$date, tz = "", format="%Y-%m-%d" ,
+                           tryFormats = c("%Y/%m/%d",
+                                          "%Y/%m/%d"),
+                           optional = FALSE)
+
+dm2inifin$date = as.POSIXct(dm2inifin$date, tz = "", format="%Y-%m-%d" ,
+                           tryFormats = c("%Y/%m/%d",
+                                          "%Y/%m/%d"),
+                           optional = FALSE)
+
+eventlog_GUAT = bind_rows(eventlog_GUAT, dm2inifin)
+
+evLog_guat = eventlog_GUAT %>%
+  mutate(resource = NA,
+         nfar=factor(nfar,levels=c( "0IN","1__","1IN","2__","2IN","3__","3IN","4__","4IN","5__","DEFUN.","SUPERV."),labels=c("Solo Insulina","1 ADO","Insulina + 1 ADO","2 ADOs","Insulina + 2 ADOs","3 ADOs","Insulina + 3 ADOs","4 ADOs","Insulina + 4 ADOs","5 ADOs","Exitus","Sobrevive"))) %>%
+  eventlog(
+    case_id = "ID",
+    activity_id = "nfar",
+    lifecycle_id = "cycle",
+    activity_instance_id = "actins",
+    timestamp = "date",
+    resource_id = "resource"
+  )
+```
+
+
+## Slide with R Output
+
+```{r cars, echo = TRUE}
+summary(evLog5_DM2)
+summary(evLog5_DM1)
+
+```
+
+## Los 10 procesos asistenciales más frecuentes en DM1
+
+```{r proceso DM1}
+evLog5_DM1 %>%
+  trace_explorer(n_traces=10)
+
+```
+
+## Los 10 procesos asistenciales más frecuentes en DM2
+
+```{r proceso DM2}
+evLog5_DM2 %>%
+  trace_explorer(n_traces=10)
+```
+
+
+## De qué especialidad llegan los pacientes DM1
+
+```{r origen y destino DM1 }
+process_matrix(evLog5_DM1) %>% plot
+
+```
+
+## De qué especialidad llegan los pacientes DM2
+
+```{r origen y destino DM2 }
+process_matrix(evLog5_DM2) %>% plot
+```
+
+
+## Qué tiempos se manejan en las rutas asistenciales más frecuentes (25%) de pacientes DM2?
+
+```{r tiempos DM1}
+evLog5_DM1 %>%
+  filter_trace_frequency(percentage = 0.25) %>%
+  process_map(type_nodes = performance(median, "months"), #Visión temporal de los nodos, cuánto tiempo de media o mediana o lo que selecciones se tarda en realizar una actividad, en nuestro caso es 0 porque las actividades solo tienen un evento, no hay un inicio y un final
+              type_edges = performance(median, "months")) #Visión temporal de las aristas, el tiempo que hay entre el final de una actividad y el inicio de la siguiente (puede ser tiempo negativo si la siguiente empieza antes de que acabe la primera)
+
+```
+
+
+
+
+## Qué tiempos se manejan en las rutas asistenciales más frecuentes(25%) de pacientes DM2?
+
+```{r tiempos DM2}
+evLog5_DM2 %>%
+  filter_trace_frequency(percentage = 0.25) %>%
+  process_map(type_nodes = performance(median, "months"), #Visión temporal de los nodos, cuánto tiempo de media o mediana o lo que selecciones se tarda en realizar una actividad, en nuestro caso es 0 porque las actividades solo tienen un evento, no hay un inicio y un final
+              type_edges = performance(median, "months")) #Visión temporal de las aristas, el tiempo que hay entre el final de una actividad y el inicio de la siguiente (puede ser tiempo negativo si la siguiente empieza antes de que acabe la primera)
+
+```
+
+## Slide with Plot
+
+
+```{r animacion}
+
+# processmapR::idotted_chart(evLog2 )
+
+processanimateR::animate_process(evLog5_DM1)
+# processanimateR::animate_process(evLog5_DM2)
+```
+
+```{r animacion}
+
+# processmapR::idotted_chart(evLog2 )
+
+processanimateR::animate_process(evLog5_DM1,legend = "color",
+                                 mapping=token_aes(color=token_scale("TABACO",scale = "ordinal",range = RColorBrewer::brewer.pal(4, "Paired"))))
+# processanimateR::animate_process(evLog5_DM2)
+```
+
+## Y si nos preguntamos por las comorbilidades de los navarros? Cuales son los procesos del desarrollo de comorbilidades?
+
+
+
+```{r Comorbilidades}
+summary(Evnt.log.Char_) #Resumen del eventlog
+
+```
+
+## Cuales son las rutas de multimorbilidad más frecuentes?
+
+
+```{r Multimorbilidad H natural}
+Evnt.log.Char_ %>%
+  trace_explorer(n_traces = 10)
+```
+
+## Cuales son los tiempos entre diagnósticos recogidos en HCI?
+```{r tiempos entre diagnósticos}
+
+Evnt.log.Char_ %>%
+  filter_activity_frequency(percentage = 1) %>% # show only most frequent activities
+  filter_trace_frequency(percentage = 0.15) %>%
+  process_map( #Visión temporal de los nodos, cuánto tiempo de media o mediana o lo que selecciones se tarda en realizar una actividad, en nuestro caso es 0 porque las actividades solo tienen un evento, no hay un inicio y un final
+              type_edges = performance(median, "years")) #Visión temporal de las aristas, el tiempo que hay entre el final de una actividad y el inicio de la siguiente (puede ser tiempo negativo si la siguiente empieza antes de que acabe la primera)
+
+
+```
+##Qué sucede con las prescripciones de fármacos? Cómo se producen las secuencias de prescripciones?
+
+```{r proceso de prescripcion farmacologica}
+
+# summary(evLog_guat)
+
+evLog_guat %>%
+  filter_activity_frequency(percentage = 1) %>%
+  filter_trace_frequency(percentage = .75) %>%
+  process_map(type_nodes = frequency("relative_case"),
+              type_edges = frequency("relative_case"))
+
+```
+
