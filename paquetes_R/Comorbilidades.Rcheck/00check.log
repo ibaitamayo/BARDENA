@@ -1,0 +1,258 @@
+* using log directory 'F:/Navarrabiomed/Methodology/Github/BARDENA/paquetes_R/Comorbilidades.Rcheck'
+* using R version 4.2.0 (2022-04-22 ucrt)
+* using platform: x86_64-w64-mingw32 (64-bit)
+* using session charset: UTF-8
+* using options '--no-manual --as-cran'
+* checking for file 'Comorbilidades/DESCRIPTION' ... OK
+* checking extension type ... Package
+* this is package 'Comorbilidades' version '0.3.10'
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking whether package 'Comorbilidades' can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking DESCRIPTION meta-information ... NOTE
+Malformed Description field: should contain one or more complete sentences.
+Non-standard license specification:
+  CReativeCommons
+Standardizable: FALSE
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' imports not declared from:
+  'data.table' 'dplyr' 'lubridate'
+'library' or 'require' calls not declared from:
+  'DT' 'data.table' 'dplyr' 'lubridate' 'readr' 'stringr' 'tools'
+'library' or 'require' calls in package code:
+  'DT' 'data.table' 'dplyr' 'lubridate' 'readr' 'stringr' 'tools'
+  Please use :: or requireNamespace() instead.
+  See section 'Suggested packages' in the 'Writing R Extensions' manual.
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+comorb: no visible global function definition for 'read_delim'
+comorb: no visible global function definition for 'locale'
+comorb: no visible global function definition for 'cols'
+comorb: no visible global function definition for 'col_double'
+comorb: no visible global function definition for 'col_character'
+comorb: no visible global function definition for 'head'
+comorb: no visible global function definition for '%>%'
+comorb: no visible global function definition for 'mutate'
+comorb: no visible global function definition for 'str_trunc'
+comorb: no visible binding for global variable 'ResDiag_Inicio_Fecha'
+comorb: no visible global function definition for 'distinct'
+comorb: no visible binding for global variable 'Pac_Unif_Cod'
+comorb: no visible binding for global variable 'Diag_Cod'
+comorb: no visible global function definition for 'filter'
+comorb: no visible binding for global variable 'allstrimcod'
+comorb: no visible global function definition for 'str_starts'
+comorb: no visible binding for global variable 'type'
+comorb: no visible global function definition for 'relocate'
+comorb: no visible binding for global variable 'idfechacod'
+comorb: no visible global function definition for 'select'
+comorb: no visible global function definition for 'setDT'
+comorb: no visible binding for global variable 'tricod'
+comorb: no visible global function definition for ':='
+comorb: no visible global function definition for 'str_detect'
+comorb: no visible binding for global variable 'value'
+comorb: no visible global function definition for 'tstrsplit'
+comorb: no visible global function definition for 'dcast.data.table'
+comorb: no visible global function definition for 'across'
+comorb: no visible global function definition for 'left_join'
+comorb: no visible binding for global variable 'score_ch'
+comorb: no visible binding for global variable 'index_ch'
+comorb: no visible binding for global variable 'wscore_ch'
+comorb: no visible binding for global variable 'windex_ch'
+comorb: no visible binding for global variable 'score_hx'
+comorb: no visible binding for global variable 'index_hx'
+comorb: no visible binding for global variable 'wscore_ahrq'
+comorb: no visible binding for global variable 'wscore_hxvw'
+comorb: no visible binding for global variable 'windex_vw'
+smokerGroup: no visible global function definition for 'read_delim'
+smokerGroup: no visible global function definition for 'cols'
+smokerGroup: no visible global function definition for 'col_skip'
+smokerGroup: no visible global function definition for 'col_character'
+smokerGroup: no visible global function definition for 'locale'
+smokerGroup: no visible global function definition for '%>%'
+smokerGroup: no visible global function definition for 'mutate'
+smokerGroup: no visible binding for global variable 'valorDGP'
+smokerGroup: no visible global function definition for 'ymd'
+smokerGroup: no visible global function definition for 'str_trunc'
+smokerGroup: no visible binding for global variable 'fechaDGP'
+smokerGroup: no visible global function definition for 'case_when'
+smokerGroup: no visible global function definition for 'filter'
+Undefined global functions or variables:
+  %>% := Diag_Cod Pac_Unif_Cod ResDiag_Inicio_Fecha across allstrimcod
+  case_when col_character col_double col_skip cols dcast.data.table
+  distinct fechaDGP filter head idfechacod index_ch index_hx left_join
+  locale mutate read_delim relocate score_ch score_hx select setDT
+  str_detect str_starts str_trunc tricod tstrsplit type valorDGP value
+  windex_ch windex_vw wscore_ahrq wscore_ch wscore_hxvw ymd
+Consider adding
+  importFrom("stats", "filter")
+  importFrom("utils", "head")
+to your NAMESPACE file.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... NOTE
+Rd file 'comorb.Rd':
+  \examples lines wider than 100 characters:
+     comorb(archivo="//Centcs01srv03/TABLEAU/Coronavirus/R/PacDiag2021.csv",id="Pac_Unif_Cod",code="Diag_Cod", fecha="ResDiag_Inicio_Fecha", ... [TRUNCATED]
+     comorb(tabla="//Centcs01srv03/TABLEAU/Coronavirus/R/PacDiag2021.csv",id="Pac_Unif_Cod",code="Diag_Cod", fecha="ResDiag_Inicio_Fecha", m ... [TRUNCATED]
+
+Rd file 'smokerGroup.Rd':
+  \examples lines wider than 100 characters:
+     smokerGroup(tabla="F:/Navarrabiomed/Teletrabajo/Dropbox/Intercambio_archivos_Juli_Ibai/Comorbilidades/Tabaco/Ultimo_DGP_Tabaco.csv",exf ... [TRUNCATED]
+
+These lines will be truncated in the PDF manual.
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... WARNING
+Undocumented code objects:
+  'allstrimcod' 'tricod'
+Undocumented data sets:
+  'allstrimcod' 'tricod'
+All user-level objects in a package should have documentation entries.
+See chapter 'Writing R documentation files' in the 'Writing R
+Extensions' manual.
+* checking for code/documentation mismatches ... WARNING
+Codoc mismatches from documentation object 'comorb':
+comorb
+  Code: function(archivo =
+                 "//Centcs01srv03/TABLEAU/Coronavirus/R/PacDiag2021.csv",
+                 id = "Pac_Unif_Cod", code = "Diag_Cod", fecha =
+                 "ResDiag_Inicio_Fecha", assign0 = TRUE, mini = NULL)
+  Docs: function(tabla =
+                 "//Centcs01srv03/TABLEAU/Coronavirus/R/PacDiag2021.csv",
+                 id = "Pac_Unif_Cod", code = "Diag_Cod", fecha =
+                 "ResDiag_Inicio_Fecha", modo = "pesos", assign0 =
+                 TRUE, mini = NULL)
+  Argument names in code not in docs:
+    archivo
+  Argument names in docs not in code:
+    tabla modo
+  Mismatches in argument names:
+    Position: 1 Code: archivo Docs: tabla
+    Position: 5 Code: assign0 Docs: modo
+    Position: 6 Code: mini Docs: assign0
+comorb
+  Code: function(archivo =
+                 "//Centcs01srv03/TABLEAU/Coronavirus/R/PacDiag2021.csv",
+                 id = "Pac_Unif_Cod", code = "Diag_Cod", fecha =
+                 "ResDiag_Inicio_Fecha", assign0 = TRUE, mini = NULL)
+  Docs: function(tabla =
+                 "//Centcs01srv03/TABLEAU/Coronavirus/R/PacDiag2021.csv",
+                 id = "Pac_Unif_Cod", code = "Diag_Cod", fecha =
+                 "ResDiag_Inicio_Fecha", modo = "pesos", assign0 =
+                 TRUE, mini = NULL)
+  Argument names in code not in docs:
+    archivo
+  Argument names in docs not in code:
+    tabla modo
+  Mismatches in argument names:
+    Position: 1 Code: archivo Docs: tabla
+    Position: 5 Code: assign0 Docs: modo
+    Position: 6 Code: mini Docs: assign0
+
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'comorb'
+  'tabla' 'id' 'code' 'fecha' 'modo' 'assign0' 'mini'
+Documented arguments not in \usage in documentation object 'comorb':
+  'archivo.' 'mini.' 'tabla.' 'modo.'
+
+Undocumented arguments in documentation object 'smokerGroup'
+  'tabla' 'Ultimo_DGP_Tabaco.csv' 'exfumador_meses'
+Documented arguments not in \usage in documentation object 'smokerGroup':
+  'tabla.' 'exfumador_meses.'
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter 'Writing R documentation files' in the 'Writing R
+Extensions' manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of 'data' directory ... OK
+* checking data for non-ASCII characters ... OK
+* checking LazyData ... OK
+* checking data for ASCII and uncompressed saves ... OK
+* checking examples ... ERROR
+Running examples in 'Comorbilidades-Ex.R' failed
+The error most likely occurred in:
+
+> base::assign(".ptime", proc.time(), pos = "CheckExEnv")
+> ### Name: comorb
+> ### Title: Comorbilidades
+> ### Aliases: comorb
+> 
+> ### ** Examples
+> 
+> comorb(archivo="//Centcs01srv03/TABLEAU/Coronavirus/R/PacDiag2021.csv",id="Pac_Unif_Cod",code="Diag_Cod", fecha="ResDiag_Inicio_Fecha",assign0 = TRUE)
+Loading required package: dplyr
+Warning: package 'dplyr' was built under R version 4.2.2
+
+Attaching package: 'dplyr'
+
+The following objects are masked from 'package:stats':
+
+    filter, lag
+
+The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union
+
+Loading required package: readr
+Warning: package 'readr' was built under R version 4.2.2
+Loading required package: data.table
+Warning: package 'data.table' was built under R version 4.2.2
+
+Attaching package: 'data.table'
+
+The following objects are masked from 'package:dplyr':
+
+    between, first, last
+
+Loading required package: stringr
+Warning: package 'stringr' was built under R version 4.2.2
+Loading required package: DT
+Warning: package 'DT' was built under R version 4.2.2
+Loading required package: lubridate
+Warning: package 'lubridate' was built under R version 4.2.2
+
+Attaching package: 'lubridate'
+
+The following objects are masked from 'package:data.table':
+
+    hour, isoweek, mday, minute, month, quarter, second, wday, week,
+    yday, year
+
+The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union
+
+Loading required package: tools
+Error in mutate(., ResDiag_Inicio_Fecha = lubridate::ymd(str_trunc(ResDiag_Inicio_Fecha,  : 
+  object 'tabla' not found
+Calls: comorb -> %>% -> mutate
+Execution halted
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+Status: 1 ERROR, 4 WARNINGs, 3 NOTEs
