@@ -21,8 +21,3 @@ groups whatever data is stored in ATENEA or ANDIA DGP_Cod=TABACO into three smok
 \description{
 Extraction of smoking group through regular expressions and data of variable.
 }
-\examples{
-smokerGroup(tabla="F:/Navarrabiomed/Teletrabajo/Dropbox/Intercambio_archivos_Juli_Ibai/Comorbilidades/Tabaco/Ultimo_DGP_Tabaco.csv",exfumador_meses=12)
-
-
-}

@@ -1,5 +1,8 @@
-Este paquete por ahora hace varias cosas:
-1.Utiliza los códigos CIE9, CIE10 de los ingresos del conjunto básico mínimo de datos y los códigos CIAP2 de los diagnósticos de primaria y computa el índice Charlson y Elixhauser devolviendo además la primera fecha en la que se introdujo un código relacionado con cada grupo de patologías.
+Funciones del paquete Comorbilidades:
+
+1. trabaja desde datos en formato texto con separador (\t) y con data frames para que pueda ser llamado desde una consulta sql directamente.
+
+2.Utiliza los códigos CIE9, CIE10 de los ingresos del conjunto básico mínimo de datos y los códigos CIAP2 de los diagnósticos de primaria y computa el índice Charlson y Elixhauser devolviendo además la primera fecha en la que se introdujo un código relacionado con cada grupo de patologías.
 
 
 Para este punto utiliza los siguientes códigos, extraidos del paquete comorbidity:
@@ -50,7 +53,7 @@ o	AIDS/HIV: B20.x - B22.x, B24.x
 Weights
 Each condition from the Charlson score is assigned a score when computing the weighted Charlson index, irrespectively of the coding system utilised. In particular, diabetes with complications, hemiplegia/paraplegia, renal disease, and malignancies are assigned a score of 2; moderate/severe liver disease is assigned a score of 3; metastatic solid tumour and AIDS/HIV are assigned a score of 6; the remaining comorbidities are assigned a score of 1. comorbidityallows the option of applying a hierarchy of comorbidities should a more severe version be present: by choosing to do so (and that is the default behaviour of comorbidity) a type of comorbidity is never computed more than once for a given patient.
 
-Los códigos CIAP2 son los siguientes:
+Los códigos CIAP2 se mapearon con cada código de CIE10 para obtener el siguiente listado:
 grupo CIAP2
 ami K75
 ami K76
@@ -189,6 +192,6 @@ depre P02
 
 
 
-2.Define a los pacientes como fumador, no fumador y exfumador basándose en expresiones regulares de campos de texto libre del DGP tabaco de atención primaria.
+3.Define a los pacientes como fumador, no fumador y exfumador basándose en expresiones regulares de campos de texto libre del DGP tabaco de atención primaria.
 
 

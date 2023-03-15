@@ -5,18 +5,29 @@
 \title{Comorbilidades}
 \usage{
 comorb(
-  archivo = "//Centcs01srv03/TABLEAU/Coronavirus/R/PacDiag2021.csv",
+  archivo,
   id = "Pac_Unif_Cod",
   code = "Diag_Cod",
+  type = "type",
   fecha = "ResDiag_Inicio_Fecha",
-  assign0 = TRUE,
+  granularidad = TRUE,
   mini = NULL
 )
 }
 \arguments{
-\item{archivo.}{Archivo refers to the location of the csv file that needs 3 columns. pacUnifCOde (patient identifier),Diag_Cod(ICD9 or ICD10 of the pathology),ResDGP_Fecha_Presta(date of the comorbidity).}
+\item{archivo}{Archivo refers to either the data frame or to the txt.}
 
-\item{mini.}{This numeric parameters  defines the number of rows from the "archivo" that the package should be passed on.}
+\item{id}{The name of the column the patients identification codes are found.}
+
+\item{code}{code refers to the name of the column where the disease codes will be found}
+
+\item{type}{type refers to the name of the column where the type of codification that "code" is being codified. Usually this column will contain values such as "ICD9", "ICD10" or "CIAP2" or similar}
+
+\item{fecha}{fecha refers to the name of the column where the date of the coded disease is found}
+
+\item{granularidad}{This boolean parameter defines if mild and severe formas of the disease should be distinguished, and will be applied to liver disease, diabetes and cancer.}
+
+\item{mini}{This numeric parameters  defines the number of rows from the "archivo" that the package should be passed on.}
 }
 \value{
 modified version of comorbidity to use  ICD9 , ICD10 and CIAP2 to return Charlson score, elixhauser score and first event date.
