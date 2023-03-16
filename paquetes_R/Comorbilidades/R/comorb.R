@@ -29,11 +29,11 @@ comorb<-function(archivo,id="Pac_Unif_Cod",code="Diag_Cod", type="type",fecha="R
 
 
   if(is.data.frame(archivo)){
-    cat("Loading Dataframe","\n")
+    message("Loading Dataframe","\n")
     tabla<-archivo
 
   }else if(tools::file_ext(archivo)=="txt"){
-    cat("Loading txt file","\n")
+    message("Loading txt file","\n")
     tabla<-read_delim(archivo,
                       ";", escape_double = FALSE,col_names = TRUE,
                       locale = locale(encoding = "ISO-8859-1"),col_types = cols(X1 = col_double(),X2 = col_character(),X3 = col_character(),X4 = col_character()),
@@ -51,25 +51,25 @@ comorb<-function(archivo,id="Pac_Unif_Cod",code="Diag_Cod", type="type",fecha="R
   if(is.null(mini)==FALSE){
     tabla<-head(tabla,mini)
   }
-  print("load complete")
+
   colnames(tabla)<-c(id,code,"type",fecha)
   tabla <- tabla %>%mutate(ResDiag_Inicio_Fecha=lubridate::ymd(str_trunc(ResDiag_Inicio_Fecha,width = 10,ellipsis = "")))
 
   tabla%>%distinct(Pac_Unif_Cod)->allpeople
   allpeople$Pac_Unif_Cod->allpeople
-  print("people counted")
+  message(paste0("load complete...",paste0(length(allpeople)," patients detected")))
 
   tabla <- tabla %>% dplyr::mutate(Diag_Cod=gsub("\\.","",Diag_Cod))%>%filter(strtrim(Diag_Cod,3)%in%Comorbilidades:::allstrimcod)#corto a 3 digitos y lo comparo con los eventos cortados a 3 digitos,x velocidad
 
   tabla<-tabla%>%mutate(Diag_Cod=ifelse(str_starts(string=tolower(type),pattern = "(ciap)"),paste0("_",Diag_Cod),Diag_Cod))%>%filter(is.na(Pac_Unif_Cod)==FALSE)#esto es lo que he añadido para que lea los ciap2
   tabla<-tabla%>%dplyr::select(all_of(c(id,code,fecha)))
   colnames(tabla)<-c("id","code","fecha")
-  print("CIAP2 processed")
+  # message("CIAP2 processed")
 
 
   ### 1. construye in identificador compuesto de id.fecha.codecie ####
   tabla_ <- tabla %>% dplyr::mutate(idfechacod=paste(as.character(id),as.character(fecha),code, sep=",")) %>% relocate(idfechacod, .before=id)  %>% dplyr::select(-all_of(c("id","fecha"))) %>% setDT()
-  print("information_joined")
+  # message("information_joined")
   ## 2. se generan las diversas comorbilidades empleando los codigos del objeto Comorbilidades:::tricod ####
 
   for(i in seq(1,length(Comorbilidades:::tricod))) {
@@ -77,25 +77,25 @@ comorb<-function(archivo,id="Pac_Unif_Cod",code="Diag_Cod", type="type",fecha="R
     varname=names(Comorbilidades:::tricod)[i]
     tabla_ <- tabla_ %>% mutate(!!varname:=as.numeric(str_detect(code,dc)))
   }
-  print("disease matrix generated")
+  message("disease matrix generated")
 
   mpp=data.table::melt(tabla_, id.vars = "idfechacod",measure.vars = names(tabla_)[3:45]) %>% setDT()
-  print("diseases grouped")
+  # message("diseases grouped")
   # mpp=mpp[value!=0]
   mpp=mpp[with(mpp,value!=0),]
-  print("Fit persons eliminated")
+  # message("empty disease groups eliminated")
   # mpp[, c("id","fecha","code"):=tstrsplit(x=idfechacod, "," , fixed=TRUE)]
   # mpp[, c("id","fecha","code"):=tstrsplit(idfechacod, "," , fixed=TRUE,names=TRUE)]## eliminar registros con codigos no incluidos
   tidyr::separate_wider_delim(data=mpp,cols="idfechacod",delim=",",names=c("id","fecha","code"),cols_remove = TRUE)->mpp
   # mpp=mpp[, -"idfechacod"]
-  print("disaggregating information")
+  # message("disaggregating information")
 
   ## S1 17g+score generar el fichero previo (a falta del cálculo de pesos) de la S1
 
   ppf=mpp %>%
-    pivot_wider(names_from = variable,values_from = fecha,
+    pivot_wider(id_cols = id,names_from = variable,values_from = fecha,
     values_fn = ~min(.x,na.rm=TRUE))
-  print("calculating first events")
+  message("calculating first events")
 
   if(any(names(Comorbilidades:::tricod)%in%colnames(ppf)==FALSE)){
     colvacias<-data.frame(matrix(data=NA,nrow = dim(ppf)[1],ncol=sum((as.numeric(names(Comorbilidades:::tricod)%in%colnames(ppf)-1)^2))))
@@ -104,7 +104,7 @@ comorb<-function(archivo,id="Pac_Unif_Cod",code="Diag_Cod", type="type",fecha="R
   }
 
   pps<- ppf %>% mutate(across(names(Comorbilidades:::tricod),function(x){x=ifelse(is.na(x),0,1)}))
-  print("preprocessing values for scores")
+  # message("preprocessing values for scores")
 
   data.table::setDF(pps)
   pps$score_ch <- with(pps, ami + chf + pvd + cevd + dementia +
@@ -162,7 +162,7 @@ comorb<-function(archivo,id="Pac_Unif_Cod",code="Diag_Cod", type="type",fecha="R
                                                                                      "1-4", ">=5"), right = FALSE))
 
   ppf%>%left_join(pps%>%dplyr::select(all_of(c("id","score_ch","index_ch","wscore_ch","windex_ch","score_hx","index_hx","wscore_ahrq","wscore_hxvw","windex_vw"))),by="id")->ppf
-  print("scores calculated")
+  message("scores calculated")
   if(any(allpeople%in%ppf$id==FALSE)){
     data.frame(matrix(data = NA,nrow = length(allpeople[allpeople%in%ppf$id==FALSE]),ncol=dim(ppf)[2]))->fillpatient
     colnames(fillpatient)<-colnames(ppf)
@@ -171,6 +171,6 @@ comorb<-function(archivo,id="Pac_Unif_Cod",code="Diag_Cod", type="type",fecha="R
     rbind(ppf,fillpatient)->ppf
 
   }
-  print("fit people reincorporated")
+  # message("fit people reincorporated")
   return(ppf)
   }
