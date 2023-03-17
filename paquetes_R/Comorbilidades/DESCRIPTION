@@ -2,8 +2,8 @@ Package: Comorbilidades
 Type: Package
 Title: Agrupadores de comorbilidades, patologías y factores de riesgo 
 Version: 0.3.22
-Author: BARDENA Millenia
-Maintainer: The package maintainer <ibai.tamayo.rodriguez@navarra.es>
+Author: BARDENA Millenia julian.librero@gmail.com
+Maintainer: The package maintainers <ibai.tamayo.rodriguez@navarra.es>; <julian.librero@gmail.com>
 Description:  Funciones para calcular CHARLSON y ELIXHAUSER así como extraer la primera fecha del diagnóstico de codigos CIE9,CIE10 y CIAP2 juntos desde dataframe o txt.
 License: CReativeCommons
 Encoding: UTF-8
