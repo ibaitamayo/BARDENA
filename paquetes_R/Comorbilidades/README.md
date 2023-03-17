@@ -4,7 +4,7 @@
 
 Cálculo de comorbilidades y de factores de riesgo:
 
-Paquete desarrollado dentro de la suite BARDENA MILENIA por Julian Librero e Ibai Tamayo.
+Paquete desarrollado dentro de la suite BARDENA MILENIA por **Julian Librero e Ibai Tamayo**.
 
 1.  ***Comorbilidades:***
 
