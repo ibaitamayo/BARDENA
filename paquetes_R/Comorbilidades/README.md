@@ -4,6 +4,8 @@
 
 Cálculo de comorbilidades y de factores de riesgo:
 
+Paquete desarrollado dentro de la suite BARDENA MILENIA por Julian Librero e Ibai Tamayo.
+
 1.  ***Comorbilidades:***
 
     Trabaja tanto con datos en formato texto con separador (\t) como con data frames para que puedan ser llamados directamente desde una consulta sql .
