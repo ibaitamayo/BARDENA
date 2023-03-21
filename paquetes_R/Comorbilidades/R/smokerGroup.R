@@ -9,7 +9,6 @@
 #'
 #' @return groups whatever data is stored in ATENEA or ANDIA DGP_Cod=TABACO into three smoker groups. Current smoker, ex-smoker, non-smoker
 #'
-#' @examples smokerGroup(tabla="F:/Navarrabiomed/Teletrabajo/Dropbox/Intercambio_archivos_Juli_Ibai/Comorbilidades/Tabaco/Ultimo_DGP_Tabaco.csv",exfumador_meses=12)
 #'
 #'
 #' @export
