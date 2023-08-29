@@ -161,7 +161,7 @@ comorb<-function(archivo,id="Pac_Unif_Cod",code="Diag_Cod", type="type",fecha="R
                                                          0, 1, 4.5, Inf), labels = c("<0", "0",
                                                                                      "1-4", ">=5"), right = FALSE))
 
-  ppf%>%left_join(pps%>%dplyr::select(all_of(c("id","score_ch","index_ch","wscore_ch","windex_ch","score_hx","index_hx","wscore_ahrq","wscore_hxvw","windex_vw"))),by="id")->ppf
+  ppf%>%left_join(pps%>%dplyr::select(all_of(c("id","score_ch","index_ch","wscore_ch","windex_ch","score_hx","index_hx","wscore_ahrq","wscore_hxvw","windex_ahrq","windex_vw"))),by="id")->ppf
   message("scores calculated")
   if(any(allpeople%in%ppf$id==FALSE)){
     data.frame(matrix(data = NA,nrow = length(allpeople[allpeople%in%ppf$id==FALSE]),ncol=dim(ppf)[2]))->fillpatient
