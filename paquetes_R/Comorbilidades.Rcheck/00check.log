@@ -1,0 +1,136 @@
+* using log directory 'E:/Github/BARDENA/paquetes_R/Comorbilidades.Rcheck'
+* using R version 4.3.1 (2023-06-16 ucrt)
+* using platform: x86_64-w64-mingw32 (64-bit)
+* R was compiled by
+    gcc.exe (GCC) 12.2.0
+    GNU Fortran (GCC) 12.2.0
+* running under: Windows 10 x64 (build 19045)
+* using session charset: UTF-8
+* using options '--no-manual --as-cran'
+* checking for file 'Comorbilidades/DESCRIPTION' ... OK
+* checking extension type ... Package
+* this is package 'Comorbilidades' version '0.3.24'
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking whether package 'Comorbilidades' can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking DESCRIPTION meta-information ... WARNING
+Non-standard license specification:
+  CReativeCommons
+Standardizable: FALSE
+* checking top-level files ... NOTE
+Non-standard files/directories found at top level:
+  'codigos.rda' 'data-raw'
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' imports not declared from:
+  'data.table' 'dplyr' 'lubridate' 'tidyr'
+'library' or 'require' calls not declared from:
+  'DT' 'data.table' 'dplyr' 'lubridate' 'readr' 'stringr' 'tidyr'
+  'tools'
+'library' or 'require' calls in package code:
+  'DT' 'data.table' 'dplyr' 'lubridate' 'readr' 'stringr' 'tidyr'
+  'tools'
+  Please use :: or requireNamespace() instead.
+  See section 'Suggested packages' in the 'Writing R Extensions' manual.
+There are ::: calls to the package's namespace in its code. A package
+  almost never needs to use ::: for its own objects:
+  'allstrimcod' 'tricod'
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+comorb: no visible global function definition for 'read_delim'
+comorb: no visible global function definition for 'locale'
+comorb: no visible global function definition for 'cols'
+comorb: no visible global function definition for 'col_double'
+comorb: no visible global function definition for 'col_character'
+comorb: no visible global function definition for 'head'
+comorb: no visible global function definition for '%>%'
+comorb: no visible global function definition for 'mutate'
+comorb: no visible global function definition for 'str_trunc'
+comorb: no visible binding for global variable 'ResDiag_Inicio_Fecha'
+comorb: no visible global function definition for 'distinct'
+comorb: no visible binding for global variable 'Pac_Unif_Cod'
+comorb: no visible binding for global variable 'Diag_Cod'
+comorb: no visible global function definition for 'filter'
+comorb: no visible global function definition for 'str_starts'
+comorb: no visible global function definition for 'all_of'
+comorb: no visible global function definition for 'relocate'
+comorb: no visible binding for global variable 'idfechacod'
+comorb: no visible global function definition for 'setDT'
+comorb: no visible global function definition for ':='
+comorb: no visible global function definition for 'str_detect'
+comorb: no visible global function definition for 'pivot_wider'
+comorb: no visible binding for global variable 'variable'
+comorb: no visible global function definition for 'across'
+comorb: no visible global function definition for 'left_join'
+smokerGroup: no visible global function definition for 'read_delim'
+smokerGroup: no visible global function definition for 'cols'
+smokerGroup: no visible global function definition for 'col_skip'
+smokerGroup: no visible global function definition for 'col_character'
+smokerGroup: no visible global function definition for 'locale'
+smokerGroup: no visible global function definition for '%>%'
+smokerGroup: no visible global function definition for 'mutate'
+smokerGroup: no visible binding for global variable 'valorDGP'
+smokerGroup: no visible global function definition for 'ymd'
+smokerGroup: no visible global function definition for 'str_trunc'
+smokerGroup: no visible binding for global variable 'fechaDGP'
+smokerGroup: no visible global function definition for 'case_when'
+smokerGroup: no visible global function definition for 'filter'
+Undefined global functions or variables:
+  %>% := Diag_Cod Pac_Unif_Cod ResDiag_Inicio_Fecha across all_of
+  case_when col_character col_double col_skip cols distinct fechaDGP
+  filter head idfechacod left_join locale mutate pivot_wider read_delim
+  relocate setDT str_detect str_starts str_trunc valorDGP variable ymd
+Consider adding
+  importFrom("stats", "filter")
+  importFrom("utils", "head")
+to your NAMESPACE file.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'smokerGroup'
+  'tabla' 'Ultimo_DGP_Tabaco.csv' 'exfumador_meses'
+Documented arguments not in \usage in documentation object 'smokerGroup':
+  'tabla.' 'exfumador_meses.'
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter 'Writing R documentation files' in the 'Writing R
+Extensions' manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of 'data' directory ... OK
+* checking data for non-ASCII characters ... OK
+* checking LazyData ... OK
+* checking data for ASCII and uncompressed saves ... OK
+* checking R/sysdata.rda ... OK
+* checking examples ... NONE
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+Status: 3 WARNINGs, 2 NOTEs
