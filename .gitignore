@@ -16,4 +16,9 @@
 *README_cache/
 #*README_files/
 .Rproj.user
-datos
+.Rhistory
+.RData
+.Ruserdata
+datos/
+datos.origin/
+
