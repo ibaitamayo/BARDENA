@@ -1,0 +1,59 @@
+---
+title: "Uniendo farmacos"
+author: "Ibai Tamayo"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+tabla_5a_atenea %>%
+  mutate(ateneaFECHA_start=if_else(ateneaFECHA_start==as.Date("1800-12-28"),as.Date(NA),as.Date(ateneaFECHA_start)),
+         ateneaFECHA_stop=if_else(ateneaFECHA_stop==as.Date("1800-12-28")|ateneaFECHA_stop>as.Date("2018-01-01"),as.Date(NA),as.Date(ateneaFECHA_stop)))->ds
+summary(ds)
+
+
+tabla_5a_recetas %>%
+  mutate(fechaIMP=if_else(fechaIMP==as.Date("1800-12-28"),as.Date(NA),as.Date(ateneaFECHA_start)),
+         ateneaFECHA_stop=if_else(ateneaFECHA_stop==as.Date("1800-12-28")|ateneaFECHA_stop>as.Date("2018-01-01"),as.Date(NA),as.Date(ateneaFECHA_stop)))->ds
+summary(ds)
+
+
+```
+```{r}
+library(lubridate)
+library(dplyr)
+library (janitor)
+library(Comorbilidades)
+set.seed(1234)
+
+data("example")
+
+ds->toscramble
+example$id[sample(1:nrow(ds))]->toscramble$PAc_Unif_Cod
+# set.seed(3829)
+# tablajunta2$fecha2[sample(1:nrow(tablajunta2))]->toscramble$ResDiag_Inicio_Fecha
+set.seed(9283)
+sample(unique(toscramble$PAc_Unif_Cod),500)->lista_pacientes
+toscramble %>% filter(PAc_Unif_Cod%in%lista_pacientes)->muestra_random
+muestra_random %>% distinct(PAc_Unif_Cod) %>% mutate(orden=1:n())->muestra_random_3
+muestra_random %>% left_join(muestra_random_3,by="PAc_Unif_Cod")->muestra_random_4
+
+muestra_random_4 %>% filter(!is.na(PAc_Unif_Cod))->muestra_random_5
+PAc_Unif_Cod
+muestra_random_5[,c(5,2:4)]->muestra_random_5
+colnames(muestra_random_5)<-c("id","codATC","Atenea_start","Atenea_end")
+class(muestra_random_5)<-"data.frame"
+muestra_random_5->example
+
+save(example,file="example_dat.rda")
+```
+
