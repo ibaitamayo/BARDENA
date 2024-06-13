@@ -21,7 +21,7 @@ traducir_tabla<-function(tabla,
                          Drug_code=NULL){
 
   if(is.null(Drug_code)){
-    colnames(tabla)[grep(pattern=Disease_code,x=colnames(tabla))]<-"Disease_code"
+    colnames(tabla)[grep(pattern=paste0("^",paste0(Disease_code,"$")),x=colnames(tabla))]<-"Disease_code"
     colnames(tabla)[grep(pattern=Disease_codification,x=colnames(tabla))]<-"Disease_codification"
     colnames(tabla)[grep(pattern=Disease_group,x=colnames(tabla))]<-"Disease_group"
 
@@ -60,12 +60,10 @@ traducir_tabla<-function(tabla,
 
 }
 
-
+library(Comorbilidades)
 data(example)
 
 
-c("aja","euk","ue","facjakd")
-sample(c("aja","euk","ue","facjakd"),1)
 
 
 head(example,500)->af
@@ -78,11 +76,34 @@ for(i in seq(1,nrow(af),1)){
   sample(c("aja","euk","ue","facjakd"),1)->af[i,5]
 }
 
-af[,-c(1,4)]->yolvieha
 
 
 
-traducir_tabla(yolvieha)
 library(dplyr)
+# tabla enfermedades
+library(Comorbilidades)
+data(example)
+example->tabla_pacientes_cod_enferm
+example %>% distinct(cod,.keep_all=TRUE) ->codigos_enf_cand
+codigos_enf_cand$pat<-sample(c(0,1),nrow(codigos_enf_cand),replace=TRUE)
+codigos_enf_cand %>% filter(pat==1) %>% dplyr::select(all_of(c("cod","codtype")))->codigos_enf_cand_1
+codigos_enf_cand_1$pat<-sample(sample(c("aja","euk","ue","facjakd"),nrow(codigos_enf_cand_1),replace=TRUE))
+
+
+
+
+# tabla_farmacos
+load("example_dat.rda")
+example->tabla_pacientes_farmacos
+example %>% distinct(codATC,.keep_all=TRUE) %>% mutate(codATC=strtrim(codATC,5)) %>% distinct(codATC)->farmacos_cand
+farmacos_cand$pat<-sample(c(0,1),nrow(farmacos_cand),replace=TRUE)
+farmacos_cand %>% filter(pat==1)->farmacos_cand_1
+farmacos_cand_1$pat<-sample(sample(c("aja","euk","ue","facjakd"),nrow(farmacos_cand_1),replace=TRUE))
+
+
+save(tabla_pacientes_cod_enferm,tabla_pacientes_farmacos,codigos_enf_cand_1,farmacos_cand_1,file = "tablas_prueba_morbfindr.rda")
+
+traducir_tabla(tabla = codigos_enf_cand_1,Disease_group = "pat",Disease_code = "cod",Disease_codification = "codtype")
+traducir_tabla(tabla = farmacos_cand_1,Disease_group = "pat",Drug_code = "codATC")
 
 
