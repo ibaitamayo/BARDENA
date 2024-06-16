@@ -41,7 +41,7 @@ Morb_findR<-function(data_disease=NULL,
 
 
   if(is.data.frame(data_disease)){
-    message("Loading Dataframe","\n")
+    message("Loading clinical history","\n")
     tabla<-data_disease
     # print(colnames(tabla))
 
@@ -58,10 +58,10 @@ Morb_findR<-function(data_disease=NULL,
     colnames(tabla)[grep(pattern=id,colnames(tabla))]<-"id"
     colnames(tabla)[grep(pattern=Disease_codification,colnames(tabla))]<-"Disease_codification"
     colnames(tabla)[grep(pattern=Disease_date,colnames(tabla))]<-"Disease_date"
-    
+
     tabla <- tabla %>%mutate(Disease_date=lubridate::ymd(str_trunc(Disease_date,width = 10,ellipsis = "")))
 
-    
+
     tabla%>%distinct(id)->allpeople
     allpeople$id->allpeople
     message(paste0("load complete...",paste0(length(allpeople)," patients detected in disease table")))
@@ -182,7 +182,7 @@ Morb_findR<-function(data_disease=NULL,
       traducir_tabla(Custom_disease_def,Disease_code,Disease_codification ,Disease_group )->custom_search_disease
       unique(strtrim(unlist(str_split(gsub(x = custom_search_disease,pattern ="(\\|)|(_)",replacement = ""),pattern = "\\^")),3))[-1]->custom_dis_strimcod
       message("calculating...","\n")
-      
+
 
     tabla <- tabla %>% dplyr::mutate(Disease_code=gsub("\\.","",Disease_code))%>%filter(strtrim(Disease_code,3)%in%custom_dis_strimcod)#corto a 3 digitos y lo comparo con los eventos cortados a 3 digitos,x velocidad
 
@@ -208,7 +208,7 @@ Morb_findR<-function(data_disease=NULL,
       varname=names(custom_search_disease)[i]
       tabla_ <- tabla_ %>% mutate(!!varname:=as.numeric(str_detect(Disease_code,dc)))
     }
-    assign("lovalgo",tabla_,envir = globalenv())
+    # assign("lovalgo",tabla_,envir = globalenv())
     message("disease matrix generated")
 
     mpp=data.table::melt(tabla_, id.vars = "idfechacod",measure.vars = names(tabla_)[-grep(pattern="cod",x=names(tabla_))]) %>% setDT()
@@ -233,6 +233,7 @@ Morb_findR<-function(data_disease=NULL,
       colnames(fillpatient)<-colnames(ppf)
       fillpatient$id<-allpeople[allpeople%in%ppf$id==FALSE]
       rbind(ppf,fillpatient)->ppf
+      message("Done!")
       # print(ppf)
     }
     }
@@ -241,10 +242,10 @@ Morb_findR<-function(data_disease=NULL,
         message("Drug - disease relation table and column definitions needed!")
       }else if(deduce_from!="from_disease"& all(!is.null(Custom_drug_def),!is.null(Drug_date),!is.null(Drug_code))){
         if(is.data.frame(data_drugs)){
-          message("Loading Dataframe","\n")
+          message("Loading drug records","\n")
           tabla_drugs<-data_drugs
           # print(colnames(tabla))
-          
+
         }else if(tools::file_ext(data_drugs)=="txt"){
           message("Loading txt file","\n")
           tabla_drugs<-read_delim(data_drugs,
@@ -255,7 +256,7 @@ Morb_findR<-function(data_disease=NULL,
         colnames(tabla_drugs)[grep(pattern=Drug_code,x=colnames(tabla_drugs))]<-"Drug_code"
         colnames(tabla_drugs)[grep(pattern=Drug_date,x=colnames(tabla_drugs))]<-"Drug_date"
 
-        
+
         tabla_drugs <- tabla_drugs %>%
           mutate(Drug_date=lubridate::ymd(str_trunc(Drug_date,width = 10,ellipsis = ""))) %>%
           dplyr::select(all_of(c("id","Drug_code","Drug_date")))
@@ -263,17 +264,17 @@ Morb_findR<-function(data_disease=NULL,
         tabla_drugs%>%distinct(id)->allpeople_drugs
         allpeople_drugs$id->allpeople_drugs
         message(paste0("load complete...",paste0(length(allpeople_drugs)," patients detected in drugs table")))
-        
-        
-        
+
+
+
         message("Generating drug search query","\n")
         traducir_tabla(tabla=Custom_drug_def,Drug_code=Drug_code,Disease_group=Disease_group)->custom_search_drug
         unique(strtrim(unlist(str_split(gsub(x = custom_search_drug,pattern ="(\\|)|(_)",replacement = ""),pattern = "\\^")),3))[-1]->custom_drug_strimcod
         tabla_drugs <- tabla_drugs %>% dplyr::mutate(Drug_code=gsub("\\.","",Drug_code))%>%filter(strtrim(Drug_code,3)%in%custom_drug_strimcod)#corto a 3 digitos y lo comparo con los eventos cortados a 3 digitos,x velocidad
-        
+
         message("calculating...","\n")
 
-        
+
         # tabla<-tabla%>%mutate(Drug_code=ifelse(str_starts(string=tolower(Disease_codification),pattern = "(ciap)"),paste0("_",Drug_code),Drug_code))%>%filter(is.na(id)==FALSE)#esto es lo que he añadido para que lea los ciap2
         # tabla<-tabla%>%dplyr::select(all_of(c(id,Drug_code,Drug_date)))
         # colnames(tabla)<-c("id","Drug_code","Drug_date")
@@ -319,13 +320,15 @@ Morb_findR<-function(data_disease=NULL,
           colnames(fillpatient_drugs)<-colnames(ppfarm)
           fillpatient_drugs$id<-allpeople_drugs[allpeople_drugs%in%ppfarm$id==FALSE]
           rbind(ppfarm,fillpatient_drugs)->ppfarm
+          message("Done!")
         }
         if(deduce_from=="from_drugs"){
           ppfarm->ppf
         }else if(deduce_from=="from_Disease&Drugs"){
+          message("merging clinical and drug related disease groups and dates")
           suppressWarnings(rbind(ppf,ppfarm) %>%
             group_by(id) %>%
-            mutate_at(.vars=names(custom_search_drug),.funs=function(x) min(ymd(x),na.rm=TRUE)) %>% 
+            mutate_at(.vars=names(custom_search_drug),.funs=function(x) min(ymd(x),na.rm=TRUE)) %>%
             distinct(id,.keep_all = TRUE)%>%
             ungroup())->ppf
 
@@ -359,7 +362,8 @@ Morb_findR(data_disease = tabla_pacientes_cod_enferm,
            Custom_drug_def = farmacos_cand_1)
 
 
-Morb_findR(data_drugs = tabla_pacientes_farmacos,
+Morb_findR(data_disease = tabla_pacientes_cod_enferm,
+           data_drugs = tabla_pacientes_farmacos,
            id = "id",
            deduce_from = "from_drugs",
            Disease_group = "pat",
