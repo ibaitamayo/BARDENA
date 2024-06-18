@@ -1,0 +1,139 @@
+* using log directory 'C:/Users/D127022/Documents/GitHub/BARDENA/paquetes_R/MorbfindR.Rcheck'
+* using R version 4.2.0 (2022-04-22 ucrt)
+* using platform: x86_64-w64-mingw32 (64-bit)
+* using session charset: UTF-8
+* using options '--no-manual --as-cran'
+* checking for file 'MorbfindR/DESCRIPTION' ... OK
+* checking extension type ... Package
+* this is package 'MorbfindR' version '0.4.0'
+* package encoding: UTF-8
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking whether package 'MorbfindR' can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking for future file timestamps ... OK
+* checking DESCRIPTION meta-information ... WARNING
+Non-standard license specification:
+  CreativeCommons
+Standardizable: FALSE
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking dependencies in R code ... WARNING
+'::' or ':::' imports not declared from:
+  'data.table' 'dplyr' 'lubridate' 'purrr' 'stringr' 'tidyr'
+'library' or 'require' calls not declared from:
+  'DT' 'data.table' 'dplyr' 'lubridate' 'readr' 'stringr' 'tidyr'
+  'tools'
+'library' or 'require' calls in package code:
+  'DT' 'data.table' 'dplyr' 'lubridate' 'readr' 'stringr' 'tidyr'
+  'tools'
+  Please use :: or requireNamespace() instead.
+  See section 'Suggested packages' in the 'Writing R Extensions' manual.
+There are ::: calls to the package's namespace in its code. A package
+  almost never needs to use ::: for its own objects:
+  'allstrimcod' 'tricod'
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+MorbfindR: no visible global function definition for 'read_delim'
+MorbfindR: no visible global function definition for 'locale'
+MorbfindR: no visible global function definition for 'cols'
+MorbfindR: no visible global function definition for 'col_double'
+MorbfindR: no visible global function definition for 'col_character'
+MorbfindR: no visible global function definition for '%>%'
+MorbfindR: no visible global function definition for 'mutate'
+MorbfindR: no visible global function definition for 'str_trunc'
+MorbfindR: no visible global function definition for 'distinct'
+MorbfindR: no visible global function definition for 'filter'
+MorbfindR: no visible global function definition for 'str_starts'
+MorbfindR: no visible global function definition for 'all_of'
+MorbfindR: no visible global function definition for 'relocate'
+MorbfindR: no visible binding for global variable 'idfechacod'
+MorbfindR: no visible global function definition for 'setDT'
+MorbfindR: no visible global function definition for ':='
+MorbfindR: no visible global function definition for 'str_detect'
+MorbfindR: no visible global function definition for 'pivot_wider'
+MorbfindR: no visible binding for global variable 'variable'
+MorbfindR: no visible global function definition for 'across'
+MorbfindR: no visible global function definition for 'left_join'
+MorbfindR: no visible global function definition for 'str_split'
+MorbfindR: no visible global function definition for 'group_by'
+MorbfindR: no visible global function definition for 'mutate_at'
+MorbfindR : <anonymous>: no visible global function definition for
+  'ymd'
+MorbfindR: no visible global function definition for 'ungroup'
+smokerGroup: no visible global function definition for 'read_delim'
+smokerGroup: no visible global function definition for 'cols'
+smokerGroup: no visible global function definition for 'col_skip'
+smokerGroup: no visible global function definition for 'col_character'
+smokerGroup: no visible global function definition for 'locale'
+smokerGroup: no visible global function definition for '%>%'
+smokerGroup: no visible global function definition for 'mutate'
+smokerGroup: no visible binding for global variable 'valorDGP'
+smokerGroup: no visible global function definition for 'ymd'
+smokerGroup: no visible global function definition for 'str_trunc'
+smokerGroup: no visible binding for global variable 'fechaDGP'
+smokerGroup: no visible global function definition for 'case_when'
+smokerGroup: no visible global function definition for 'filter'
+traducir_tabla: no visible global function definition for '%>%'
+traducir_tabla: no visible global function definition for 'mutate'
+traducir_tabla: no visible global function definition for 'group_by'
+traducir_tabla: no visible binding for global variable 'result'
+Undefined global functions or variables:
+  %>% := across all_of case_when col_character col_double col_skip cols
+  distinct fechaDGP filter group_by idfechacod left_join locale mutate
+  mutate_at pivot_wider read_delim relocate result setDT str_detect
+  str_split str_starts str_trunc ungroup valorDGP variable ymd
+Consider adding
+  importFrom("stats", "filter")
+to your NAMESPACE file.
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd line widths ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'smokerGroup'
+  'tabla' 'Ultimo_DGP_Tabaco.csv' 'exfumador_meses'
+Documented arguments not in \usage in documentation object 'smokerGroup':
+  'tabla.' 'exfumador_meses.'
+
+Undocumented arguments in documentation object 'traducir_tabla'
+  'tabla'
+Documented arguments not in \usage in documentation object 'traducir_tabla':
+  'tabla.'
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See chapter 'Writing R documentation files' in the 'Writing R
+Extensions' manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of 'data' directory ... OK
+* checking data for non-ASCII characters ... OK
+* checking LazyData ... OK
+* checking data for ASCII and uncompressed saves ... OK
+* checking R/sysdata.rda ... OK
+* checking examples ... NONE
+* checking for non-standard things in the check directory ... OK
+* checking for detritus in the temp directory ... OK
+* DONE
+Status: 3 WARNINGs, 1 NOTE

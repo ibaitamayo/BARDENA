@@ -1,11 +1,14 @@
-#' Comorbilidades
+#' MorbfindR
 #'
-#' Extraction of smoking group through regular expressions and data of variable.
+#' Generating search query form definitions
 #'
 #' @name traducir_tabla
 #'
-#' @param tabla.  Tabla refers to the location of the csv file that needs 3 columns. pacUnifCOde,DGP_Cod=TABACO,ResDGP_Fecha_Presta. Usually corersponds to the extraction of THE LAST AVAILABLE INFORMATION ON SMOKE PER PATIENT.
-#' @param exfumador_meses. exfumador_meses reffers to the minimum number of months since last time soking to consider one patient as ex_smoker.
+#' @param tabla. Dataframe with the disease definitions and codes (disease or drug) associated.
+#' @param Disease_code Column name from the custom disease definition table where codes are found
+#' @param Disease_codification Column name from the custom disease definition table where code types (ICD9, ICD10, CIAP) are found
+#' @param Disease_group Column name from the custom  definition tables where custom Diseases definitions are found
+#' @param Drug_code  Column name from the custom drug definition table where drug codes (usually ATCs) are found
 #'
 #' @return groups whatever data is stored in ATENEA or ANDIA DGP_Cod=TABACO into three smoker groups. Current smoker, ex-smoker, non-smoker
 #'
@@ -60,50 +63,6 @@ traducir_tabla<-function(tabla,
 
 }
 
-library(Comorbilidades)
-data(example)
 
-
-
-
-head(example,500)->af
-
-# sample(c("aja","euk","ue","facjakd"),500)->af$diagnom
-
-af$diagnom<-NA
-for(i in seq(1,nrow(af),1)){
-
-  sample(c("aja","euk","ue","facjakd"),1)->af[i,5]
-}
-
-
-
-
-library(dplyr)
-# tabla enfermedades
-library(Comorbilidades)
-data(example)
-example->tabla_pacientes_cod_enferm
-example %>% distinct(cod,.keep_all=TRUE) ->codigos_enf_cand
-codigos_enf_cand$pat<-sample(c(0,1),nrow(codigos_enf_cand),replace=TRUE)
-codigos_enf_cand %>% filter(pat==1) %>% dplyr::select(all_of(c("cod","codtype")))->codigos_enf_cand_1
-codigos_enf_cand_1$pat<-sample(sample(c("aja","euk","ue","facjakd"),nrow(codigos_enf_cand_1),replace=TRUE))
-
-
-
-
-# tabla_farmacos
-load("example_dat.rda")
-example->tabla_pacientes_farmacos
-example %>% distinct(codATC,.keep_all=TRUE) %>% mutate(codATC=strtrim(codATC,5)) %>% distinct(codATC)->farmacos_cand
-farmacos_cand$pat<-sample(c(0,1),nrow(farmacos_cand),replace=TRUE)
-farmacos_cand %>% filter(pat==1)->farmacos_cand_1
-farmacos_cand_1$pat<-sample(sample(c("aja","euk","ue","facjakd"),nrow(farmacos_cand_1),replace=TRUE))
-
-
-save(tabla_pacientes_cod_enferm,tabla_pacientes_farmacos,codigos_enf_cand_1,farmacos_cand_1,file = "tablas_prueba_morbfindr.rda")
-
-traducir_tabla(tabla = codigos_enf_cand_1,Disease_group = "pat",Disease_code = "cod",Disease_codification = "codtype")
-traducir_tabla(tabla = farmacos_cand_1,Disease_group = "pat",Drug_code = "codATC")
 
 

@@ -1,21 +1,27 @@
-#' Comorbilidades
+#' MorbfindR
 #'
 #' modified version of comorbidity to work simultaneously with icd9 and icd10, and Smoking group extraction
 #'
-#' @name Morb_findR
+#' @name MorbfindR
 #'
-#' @param data_disease Archivo data in data frame or txt formatdata frame or to the txt.
-#' @param id The name of the column the patients identification codes are found.
+#' @param data_disease Data in data frame or txt format containing patient information (id), Disease codes (Disease_code), Disease codification, and disease date.
+#' @param data_drugs Data in data frame or txt format containing patient information (id), drug codes (Drug_code), and drug prescription date (Drug_date).
+#' @param id The name of the column the patients identification codes are found (must be the same column name for "data_diasase" and "data_drugs" data frames.
+#' @param deduce_from Should de diseases inferred  from clinical history ("from_disease"), from drug prescriptions ("from_drugs"), or from both ("from_Disease&Drugs") .
 #' @param Disease_code Disease_code refers to the name of the column where the disease codes will be found
-#' @param Disease_codification column where the type of codification that "Disease_code" is being codified. Usually this column will contain values such as "ICD9", "ICD10" or "CIAP2" or similar
-#' @param Disease_date Disease_date refers to the name of the column where the date of the coded disease is found
-#' @param granularidad This boolean parameter defines if mild and severe formas of the disease should be distinguished, and will be applied to liver disease, diabetes and cancer.
-#' @param mini This numeric parameters  defines the number of rows from the "archivo" that the package should be passed on. For learning and debugging.
-#' @return modified version of comorbidity to use  ICD9 , ICD10 and CIAP2 to return Charlson score, elixhauser score and first event date.
-#'
+#' @param Disease_codification column of the data_disease dataframe where the type of codification that "Disease_code" is being codified. Usually this column will contain values such as "ICD9", "ICD10" or "CIAP2" or similar
+#' @param Disease_date Disease_date refers to the name of the column of the data_disease dataframe  where the date of the coded disease is found
+#' @param Disease_group Name of the column of the custom disease and/or custom drug  dataframes where DISEASE is found.
+#' @param granularidad This boolean parameter defines if mild and severe forms of the disease should be distinguished, and will be applied to liver disease, diabetes and cancer.
+#' @param Drug_code  Name of the column of data_drugs and where the drug codes (usually ATCs)will be found.
+#' @param Drug_date Name of the column of data_drugs and where the drug prescription dates will be found.
+#' @param Custom_disease_def Data frame with disease groups and disease codes are defined.Disease codes must be the same as the one found in the "data_disease" dataframe.
+#' @param Custom_drug_def Data frame with disease groups and drug codes are defined.Column names for drug codes must be the same as the one found in the "data_drugs" dataframe.
+#' @return Function will return charlson and Elixhauser indexes together with first dates of events if only clinical history is provided. If aditional tables and definitions are provided, first events will be inferred from the provided definitions and patient information.
+#
 #' @export
 #'
-Morb_findR<-function(data_disease=NULL,
+MorbfindR<-function(data_disease=NULL,
                      data_drugs=NULL,
                      id="Pac_Unif_Cod",
                      deduce_from=c("from_disease","from_drugs","from_Disease&Drugs"),
@@ -68,7 +74,7 @@ Morb_findR<-function(data_disease=NULL,
     if(is.null(Custom_disease_def)){
 
 
-    tabla <- tabla %>% dplyr::mutate(Disease_code=gsub("\\.","",Disease_code))%>%filter(strtrim(Disease_code,3)%in%Comorbilidades:::allstrimcod)#corto a 3 digitos y lo comparo con los eventos cortados a 3 digitos,x velocidad
+    tabla <- tabla %>% dplyr::mutate(Disease_code=gsub("\\.","",Disease_code))%>%filter(strtrim(Disease_code,3)%in%MorbfindR:::allstrimcod)#corto a 3 digitos y lo comparo con los eventos cortados a 3 digitos,x velocidad
 
     tabla<-tabla%>%dplyr::select(c("id","Disease_code","Disease_codification","Disease_date")) %>%
       mutate(Disease_code=ifelse(str_starts(string=tolower(Disease_codification),pattern = "(ciap)"),paste0("_",Disease_code),Disease_code))%>%
@@ -86,11 +92,11 @@ Morb_findR<-function(data_disease=NULL,
       dplyr::select(-all_of(c("id","Disease_date"))) %>%
       setDT()
 
-    ## 2. se generan las diversas comorbilidades empleando los codigos del objeto Comorbilidades:::tricod ####
+    ## 2. se generan las diversas comorbilidades empleando los codigos del objeto MorbfindR:::tricod ####
 
-    for(i in seq(1,length(Comorbilidades:::tricod))) {
-      dc=Comorbilidades:::tricod[[i]]
-      varname=names(Comorbilidades:::tricod)[i]
+    for(i in seq(1,length(MorbfindR:::tricod))) {
+      dc=MorbfindR:::tricod[[i]]
+      varname=names(MorbfindR:::tricod)[i]
       tabla_ <- tabla_ %>% mutate(!!varname:=as.numeric(str_detect(Disease_code,dc)))
     }
     message("disease matrix generated")
@@ -103,13 +109,13 @@ Morb_findR<-function(data_disease=NULL,
                   values_fn = ~min(.x,na.rm=TRUE))
     message("calculating first events")
 
-    if(any(names(Comorbilidades:::tricod)%in%colnames(ppf)==FALSE)){
-      colvacias<-data.frame(matrix(data=NA,nrow = dim(ppf)[1],ncol=sum((as.numeric(names(Comorbilidades:::tricod)%in%colnames(ppf)-1)^2))))
-      colnames(colvacias)<-names(Comorbilidades:::tricod)[names(Comorbilidades:::tricod)%in%colnames(ppf)==FALSE]
+    if(any(names(MorbfindR:::tricod)%in%colnames(ppf)==FALSE)){
+      colvacias<-data.frame(matrix(data=NA,nrow = dim(ppf)[1],ncol=sum((as.numeric(names(MorbfindR:::tricod)%in%colnames(ppf)-1)^2))))
+      colnames(colvacias)<-names(MorbfindR:::tricod)[names(MorbfindR:::tricod)%in%colnames(ppf)==FALSE]
       cbind(ppf,colvacias)->ppf
     }
 
-    pps<- ppf %>% mutate(across(names(Comorbilidades:::tricod),function(x){x=ifelse(is.na(x),0,1)}))
+    pps<- ppf %>% mutate(across(names(MorbfindR:::tricod),function(x){x=ifelse(is.na(x),0,1)}))
     # message("preprocessing values for scores")
 
     data.table::setDF(pps)
@@ -338,44 +344,3 @@ Morb_findR<-function(data_disease=NULL,
 
   return(ppf)
 }
-sample(seq(as.Date('1999/01/01'), as.Date('2024/01/01'), by="day"), nrow(synthetic_patients),replace=TRUE)->synthetic_patients$dates
-
-
-Morb_findR(data_disease = synthetic_patients,id = "patient_id",deduce_from = "from_disease",Disease_code = "code",Disease_codification = "diccionary",Disease_date = "dates",Custom_disease_def = talbaa)
-
-
-Morb_findR(data_disease = tabla_pacientes_cod_enferm,data_drugs = tabla_pacientes_farmacos,id = "id",deduce_from = "from_Disease&Drugs",Disease_code = "cod",Disease_codification = "codtype",Disease_date = "date",Disease_group = "pat",Drug_code = "codATC",Drug_date = "Atenea_start",Custom_disease_def = codigos_enf_cand_1,Custom_drug_def = farmacos_cand_1)
-
-
-
-Morb_findR(data_disease = tabla_pacientes_cod_enferm,
-           data_drugs = tabla_pacientes_farmacos,
-           id = "id",
-           deduce_from = "from_Disease&Drugs",
-           Disease_code = "cod",
-           Disease_codification = "codtype",
-           Disease_date = "date",
-           Disease_group = "pat",
-           Drug_code = "codATC",
-           Drug_date = "Atenea_start",
-           Custom_disease_def = codigos_enf_cand_1,
-           Custom_drug_def = farmacos_cand_1)
-
-
-Morb_findR(data_disease = tabla_pacientes_cod_enferm,
-           data_drugs = tabla_pacientes_farmacos,
-           id = "id",
-           deduce_from = "from_drugs",
-           Disease_group = "pat",
-           Drug_code = "codATC",
-           Drug_date = "Atenea_start",
-           Custom_drug_def = farmacos_cand_1)
-
-Morb_findR(data_disease = tabla_pacientes_cod_enferm,
-           id = "id",
-           deduce_from = "from_disease",
-           Disease_code = "cod",
-           Disease_codification = "codtype",
-           Disease_date = "date",
-           Disease_group = "pat",
-           Custom_disease_def = codigos_enf_cand_1)

@@ -1,0 +1,14 @@
+Package: MorbfindR
+Type: Package
+Title: Disease grouping based in clinical histaory and prescriptions
+Version: 0.4.0
+Author: BARDENA Millenia julian.librero@gmail.com
+Maintainer: The package maintainers <ibai.tamayo.rodriguez@navarra.es>; <julian.librero@gmail.com>
+Description: functions for disease grouping using different disease definitions and codifications  CIE9,CIE10 y CIAP2 .
+License: CreativeCommons
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+Depends: R (>= 3.5)
+NeedsCompilation: no
+Packaged: 2024-06-17 13:30:57 UTC; D127022
