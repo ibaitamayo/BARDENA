@@ -50,10 +50,10 @@ library(forcats)
 
 ```{r carga de datos proceso asistencial DM, results = FALSE, comment=FALSE, echo=FALSE, include=FALSE}
 
-load("F:/Navarrabiomed/Methodology/Github/CODE/BARDENA/Process_mining/Aprendiendo/Charla28N/Prueba datos random/Prevalentes_DM1.Rdata")
-load("F:/Navarrabiomed/Methodology/Github/CODE/BARDENA/Process_mining/Aprendiendo/Charla28N/Prueba datos random/Prevalentes_DM2.Rdata")
+load("datos/Prevalentes_DM1.Rdata")
+load("datos/Prevalentes_DM2.Rdata")
 ##############
-eventlog = read.csv("Prueba datos random/tabla_AE_a.csv", header=TRUE, sep = ",")
+eventlog = read.csv("datos//tabla_AE_a.csv", header=TRUE, sep = ",")
 
 eventlog = eventlog[which(eventlog$especialidadAE %in% c("OFTALMOLOGIA","RADIODIAGNOSTICO","ENDOCRINOLOGIA Y NUTRICION","TRAUMATOLOGIA Y ORTOPEDIA","CARDIOLOGIA","DIGESTIVO","SALUD MENTAL","UROLOGIA","HEMATOLOGIA","NEUROLOGIA") & eventlog$fecha_citaAE_start != "NA"),] # originalmente se seldeccionan estas 3especialidades_c("NEFROLOGIA", "OFTALMOLOGIA", "CARDIOLOGIA","DERMATOLOGIA","NEUROLOGIA","NUTRICION Y DIETETICA","SALUD MENTAL", "ENDOCRINOLOGIA Y NUTRICION")
 
@@ -133,7 +133,7 @@ evLog5_DM2<-eventlog6 %>% filter(DM_type=="DM2") %>%
 ```{r carga de datos procesos de multimorbilidad Navarros, results = FALSE, comment=FALSE, echo=FALSE, include=FALSE}
 
 ##Datos de los procesos de multimorbilidad de todos los navarros
-eventlog_Charls= read.csv("Prueba datos random/Charlson_fecha_score.csv", header=TRUE, sep = ";")
+eventlog_Charls= read.csv("datos/Charlson_fecha_score.csv", header=TRUE, sep = ";")
 
 
 eventlog_Charls%>%filter(score_ch>=3) %>% dplyr::select(id,ami,chf,pvd,cevd,dementia,copd,rheumd_ch,mld,diabwoc,hp,rend,canc,metacanc,aids)->eventlog_Charls_multiple
@@ -285,7 +285,7 @@ processanimateR::animate_process(evLog5_DM1)
 # processanimateR::animate_process(evLog5_DM2)
 ```
 
-```{r animacion}
+```{r animacion 2}
 
 # processmapR::idotted_chart(evLog2 )
 

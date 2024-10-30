@@ -48,10 +48,10 @@ Sacamos por pantalla un resumen de nuestro *eventlog*.
 ```{r}
 
 
-load("F:/Navarrabiomed/Methodology/Github/CODE/BARDENA/Process_mining/Aprendiendo/Charla28N/Prueba datos random/Prevalentes_DM1.Rdata")
-load("F:/Navarrabiomed/Methodology/Github/CODE/BARDENA/Process_mining/Aprendiendo/Charla28N/Prueba datos random/Prevalentes_DM2.Rdata")
+load("datos/Prevalentes_DM1.Rdata")
+load("datos/Prevalentes_DM2.Rdata")
 ##############
-eventlog = read.csv("Prueba datos random/tabla_AE_a.csv", header=TRUE, sep = ",")
+eventlog = read.csv("datos/tabla_AE_a.csv", header=TRUE, sep = ",")
 
 # length (summary(as.factor(eventlog$especialidadAE)))
 eventlog %>%group_by(especialidadAE) %>% summarize(porc=n()/nrow(.)) %>% arrange(porc)
@@ -413,7 +413,7 @@ En el siguiente gráfico se observa un mapa temporal. Aquí los números de los 
 
 
 ```{r}
-eventlog_Charls= read.csv("Prueba datos random/Charlson_fecha_score.csv", header=TRUE, sep = ";")
+eventlog_Charls= read.csv("datos/Charlson_fecha_score.csv", header=TRUE, sep = ";")
 
 
 eventlog_Charls%>%filter(score_ch>=3) %>% dplyr::select(id,ami,chf,pvd,cevd,dementia,copd,rheumd_ch,mld,diabwoc,hp,rend,canc,metacanc,aids)->eventlog_Charls_multiple
@@ -529,8 +529,8 @@ Pasamos al enfoque farmacológico. Hemos trabajado con los pacientes prevalentes
 La estructura de las nuevas actividades es de *XY*. *X* es el número de tratamientos orales que está tomando un paciente en un determinado momento. *Y* es la presencia de insulina (*I*) o la ausencia de ella (*_*). A parte de estos nodos, siempre hay dos actividades que son *SUPERV*, es decir, el momento en el que se ha terminado el seguimiento de un paciente sin que este fallezca (censura por fin del estudio o por cambio de centro) o bien *DEFUN* (el momento en el que el paciente murió).
 
 ```{r}
-outnav2 = read.csv("R:/PI/FIS2019/Ayuda Hugo/Prueba datos random/outnav2.csv", header=TRUE, sep = ",")
-eventlog2 =  read.csv("R:/PI/FIS2019/Ayuda Hugo/Prueba datos random/datos/DM2_prevalentes.csv", header=TRUE, sep = ",")
+outnav2 = read.csv("datos/outnav2.csv", header=TRUE, sep = ",")
+eventlog2 =  read.csv("Rdatos/DM2_prevalentes.csv", header=TRUE, sep = ",")
 eventlog = right_join(eventlog2, outnav2, by=c("ID" = "ID")) %>% select(ID, patron2:resource, causaINACTIVObasal, sexo, fecha_ultima_visitaSEGUIMIENTO_stop)
 eventlog = eventlog %>% filter(causaINACTIVObasal!="TRASLADADO" | is.na(causaINACTIVObasal)) %>% mutate(causaINACTIVObasal = ifelse(is.na(causaINACTIVObasal), "SUPERVIVENCIA", causaINACTIVObasal))
 dm2inifin = eventlog %>% select(ID) %>% mutate(sexo = eventlog$sexo, date = eventlog$fecha_ultima_visitaSEGUIMIENTO_stop, nfar = ifelse(eventlog$causaINACTIVObasal=="SUPERVIVENCIA", "SUPERV.", "DEFUN."), causaINACTIVObasal = eventlog$causaINACTIVObasal) %>% distinct() %>% mutate(actins = (max(eventlog$actins) + 1) : (max(eventlog$actins) + length(unique(eventlog$ID))))
@@ -650,9 +650,9 @@ A continuación obtenemos el número de eventos, casos y trazas de nuestro nuevo
 
 ```{r}
 #########################2-5-22############################
-output = read.csv("R:/PI/FIS2019/Ayuda Hugo/Prueba datos random/output.csv")
+output = read.csv("datos/output.csv")
 
-eventlog2 = read.csv("R:/PI/FIS2019/Ayuda Hugo/Prueba datos random/datos/DM2_prevalentes.csv", header=TRUE, sep = ",")
+eventlog2 = read.csv("datos/DM2_prevalentes.csv", header=TRUE, sep = ",")
 eventlog2 = eventlog2[-c(12511, 19365),]
 eventlog = inner_join(eventlog2, output, by=c("ID" = "ID"))
 eventlog = eventlog %>% mutate(causaINACTIVObasal = ifelse(is.na(causaINACTIVObasal) | causaINACTIVObasal == "TRASLADADO", "SUPERVIVENCIA", causaINACTIVObasal))
@@ -762,7 +762,7 @@ Todo este análisis que acabamos de realizar ha sido un primer acercamiento al a
 
 - También te adjunto un documento en el que hay documentación que te irá muy bien. En serio, léete los papers que te he adjuntado. Algunos son los super asfixiantes de Machine Learning que he mencionado antes. Pero bueno, si quieres ideas para predicción, empieza por ahí y ya buscarás otros más tarde. Si te encallas, no tengas miedo de preguntar a ninguno de tus compis, son todos muy majos.
 
-- A parte, hay una carpeta que se llama "Prueba Datos Random". No es muy importante que te la mires, básicamente son varias cositas que he ido probando, pero lo más importante es lo que encontrarás en este documento/RMarkdown.
+- A parte, hay una carpeta que se llama "datos". No es muy importante que te la mires, básicamente son varias cositas que he ido probando, pero lo más importante es lo que encontrarás en este documento/RMarkdown.
 
 
 
