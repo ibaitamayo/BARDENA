@@ -49,12 +49,12 @@ dicod$solidtum<-paste0(dicod$solidtum,faltan_solid)
 # allcod<-unlist(strsplit(x=append(allcod,unlist(strsplit(x = somecod,split = ";"))),split="\\^" ))#aquí hemos añadido los códigos CIAP2 a la lista, pero veo que hay solapamientos con los CIE10... T82 es obesidad en CIAP2 y complicacion de protesis en cie10 )
 
 #trataré de traducir el ciap2 a cie10 y así nos los quitamos.(https://www.sanidad.gob.es/ca/estadEstudios/estadisticas/estadisticas/estMinisterio/SIAP/map_cie9mc_cie10_ciap2.htm)
-Mapeo_CIE10ES2020_BDCAP_31_07_2020 <- read_excel("F:/BARDENA/IndiceCharlson/Mapeo_CIE10ES2020_BDCAP_31_07_2020.xlsx",  sheet = "Correspondencia(2)", col_types = c("text", "skip", "text", "skip"))
+#Mapeo_CIE10ES2020_BDCAP_31_07_2020 <- read_excel("F:/BARDENA/IndiceCharlson/Mapeo_CIE10ES2020_BDCAP_31_07_2020.xlsx",  sheet = "Correspondencia(2)", col_types = c("text", "skip", "text", "skip"))
 tripi<-as.data.frame(dicod)
-Mapeo_CIE10 <- read_excel("F:/BARDENA/IndiceCharlson/Mapeo_CIE10ES2020_BDCAP_31_07_2020.xlsx",  sheet = "Correspondencia(2)")
+Mapeo_CIE10 <- read_excel("C:/Usuarios/D127022/Documentos/Github/BARDENA/paquetes_R/IndiceCharlson/Mapeo_CIE10ES2020_BDCAP_31_07_2020.xlsx",  sheet = "Correspondencia(2)")
 
-
-colnames(Mapeo_CIE10ES2020_BDCAP_31_07_2020)<-c("CIAP2","cie10")
+Mapeo_CIE10_BDCAP_30_10_2024 %>% mutate(cie10=CIE10,CIAP2=BDCAP) %>% dplyr::select(CIAP2,cie10)->Mapeo_CIE10ES2020_BDCAP_31_07_2020
+# colnames(Mapeo_CIE10ES2020_BDCAP_31_07_2020)<-c("CIAP2","cie10")
 
 
 Mapeo_CIE10ES2020_BDCAP_31_07_2020%>%mutate(cie10=gsub(x =cie10 ,pattern="\\.",replacement = ""))->mapeo
@@ -87,7 +87,10 @@ left_join(grupos_y_cie10,mapeo,by="cie10")%>%
 mapeado %>%
   mutate(CIAP2 = strsplit(as.character(CIAP2), "/")) %>%
   unnest(CIAP2)%>%
-  mutate(CIAP2=ifelse(nchar(CIAP2)==2&nchar(lag(x = CIAP2))==3,paste0(strtrim(lag(x = CIAP2,default = ""),1),CIAP2),ifelse(nchar(CIAP2)==2&nchar(lag(x = CIAP2))==2,paste0(strtrim(lag(x = CIAP2,n=2,default = ""),1),CIAP2),CIAP2)))->mapeado
+  mutate(CIAP2=ifelse(nchar(CIAP2)==2&nchar(lag(x = CIAP2))==3,
+                      paste0(strtrim(lag(x = CIAP2,default = ""),1),CIAP2),
+                      ifelse(nchar(CIAP2)==2&nchar(lag(x = CIAP2))==2,
+                             paste0(strtrim(lag(x = CIAP2,n=2,default = ""),1),CIAP2),CIAP2)))->mapeado
 
 
 
@@ -104,26 +107,49 @@ mapeado %>%
 mapeado%>%
   mutate(CIAP2=ifelse(str_detect(string=CIAP2,pattern="(R78|R79|R96|R99|S99|L86|L83|N94|A98|K71|A94|D99|K28|F83|L99|D28|N71|U28|A89|YX70|A87)"),"",CIAP2))%>%
   mutate(CIAP2=ifelse((grupo=="metacanc" &CIAP2=="A79")|(grupo=="msld" &CIAP2=="D97")|(grupo=="msld" &CIAP2=="K99")|(grupo=="chd" &CIAP2=="K87")|(grupo=="chd" &CIAP2=="K87")|(grupo=="rheumd_ch" &CIAP2=="K99")|(grupo=="dementia" &CIAP2=="N99")|(grupo=="hp" &CIAP2=="N99")|(grupo=="diabwic" &CIAP2=="T89")|(grupo=="diabwic" &CIAP2=="T90"),"",CIAP2))%>%
-  mutate(CIAP2=ifelse((grupo=="drug" &CIAP2=="A98")|(grupo=="solidtum" &CIAP2=="B74")|(grupo=="dane" &CIAP2=="B80")|(grupo=="alcohol" &CIAP2=="D97")|(grupo=="carit" &CIAP2=="K28")|(grupo=="pvd" &CIAP2=="K28")|(grupo=="rheumd_hx" &CIAP2=="K99")|(grupo=="carit" &CIAP2=="K71")||(grupo=="chf" &CIAP2=="K71")|(grupo=="copd" &CIAP2=="K82")|(grupo=="chf" &CIAP2=="K84")|(grupo=="alcohol" &CIAP2=="K84")|(grupo=="carit" &CIAP2=="K84")|(grupo=="chf" &CIAP2=="K87")|(grupo=="rf" &CIAP2=="K87")|(grupo=="ld" &CIAP2=="K99")|(grupo=="reum" &CIAP2=="K99")|(grupo=="fed" &CIAP2=="K99")|(grupo=="para" &CIAP2=="N99")|(grupo=="ond" &CIAP2=="P15")|(grupo=="depre" &CIAP2=="P73")|(grupo=="diabc" &CIAP2=="T89")|(grupo=="diabc" &CIAP2=="T90")|(grupo=="alcohol" &CIAP2=="T91"),"",CIAP2))%>%
+  mutate(CIAP2=ifelse((grupo=="drug" &CIAP2=="A98")|
+                        (grupo=="solidtum" &CIAP2=="B74")|
+                        (grupo=="dane" &CIAP2=="B80")|
+                        (grupo=="alcohol" &CIAP2=="D97")|
+                        (grupo=="carit" &CIAP2=="K28")|
+                        (grupo=="pvd" &CIAP2=="K28")|
+                        (grupo=="rheumd_hx" &CIAP2=="K99")|
+                        (grupo=="carit" &CIAP2=="K71")|
+                        (grupo=="chf" &CIAP2=="K71")|
+                        (grupo=="copd" &CIAP2=="K82")|
+                        (grupo=="chf" &CIAP2=="K84")|
+                        (grupo=="alcohol" &CIAP2=="K84")|
+                        (grupo=="carit" &CIAP2=="K84")|
+                        (grupo=="chf" &CIAP2=="K87")|
+                        (grupo=="rf" &CIAP2=="K87")|
+                        (grupo=="ld" &CIAP2=="K99")|
+                        (grupo=="reum" &CIAP2=="K99")|
+                        (grupo=="fed" &CIAP2=="K99")|
+                        (grupo=="para" &CIAP2=="N99")|
+                        (grupo=="ond" &CIAP2=="P15")|
+                        (grupo=="depre" &CIAP2=="P73")|
+                        (grupo=="diabc" &CIAP2=="T89")|
+                        (grupo=="diabc" &CIAP2=="T90")|
+                        (grupo=="alcohol" &CIAP2=="T91"),"",CIAP2))%>%
   distinct(grupo,CIAP2)%>%
   group_by(grupo)%>%
   mutate(n=n())%>%
   ungroup()%>%
   mutate(quitar=ifelse(n>1&CIAP2=="",1,0))%>%
   filter(quitar==0)%>%
-  select(-c(n,quitar))->mapeado2
+  dplyr::select(-c("n","quitar"))->mapeado2
 
 
 
 # mapeado%>%mutate(new=paste0("^",CIAP2))%>%group_by(grupo)%>%mutate(n=1:n())%>%ungroup()%>%mutate(new=ifelse(n>1,paste0("|",new),new))%>%select(grupo,new)->ppp #por si los necesitamos por separado
-mapeado2%>%mutate(new=ifelse(CIAP2!="",paste0("|^_",CIAP2),CIAP2))%>%select(grupo,new)->ppp
+mapeado2%>%mutate(new=ifelse(CIAP2!="",paste0("|^_",CIAP2),CIAP2))%>%  dplyr::select(grupo,new)->ppp
 
 #vars to leave out:
 
 
 lista=NULL
 for(i in unique(ppp$grupo)){
-  dd<-ppp%>%filter(grupo==i)%>%select(new)
+  dd<-ppp%>%filter(grupo==i)%>%dplyr::select(new)
   # ppp%>%distinct(grupo)->kk
 
   mu=NULL
